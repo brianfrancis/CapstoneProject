@@ -111,7 +111,7 @@ getCorp <- function(data){
 createNgramFiles <- function(scorp, foldername, percov=.99, isTraining=FALSE) {
   
   
-  unigramfreq <- make.frequency.list(scorp, value=TRUE, relative=FALSE)
+#  unigramfreq <- make.frequency.list(scorp, value=TRUE, relative=FALSE)
   
 #  if (isTraining){
 #    dictionary <- read.csv(dictionaryfile)

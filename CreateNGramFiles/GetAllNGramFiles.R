@@ -8,10 +8,14 @@ setwd("C:/Users/bfrancis/Desktop/Coursera/Capstone")
 source("MyFunctions.R")
 #source("CreateProbFiles.R")
 
+#set the seed
 set.seed(123)
 
 foldernames <- c("train1", "train2", "train3", "train4", "train5"
                  , "train6", "train7", "train8", "test", "validation")
+
+
+
 
 for (j in 1:10) {
 
@@ -66,6 +70,7 @@ mergeFreqFiles <- function(filename, foldernames) {
       rm(newdt)
       gc()
       alldt <- alldt[, sum(Freq), by=.(data)]
+      
       names(alldt) <- c("data", "Freq")
     }
   }
