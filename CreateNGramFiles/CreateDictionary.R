@@ -1,55 +1,3 @@
-library(tm)
-library(stringi)
-library(RWeka)
-library(slam)
-library(stylo); 
-library(data.table)
-
-setwd("C:/Users/bfrancis/Desktop/Coursera/Capstone/CapstoneProject/CreateNGramFiles")
-source("MyFunctions.R")
-
-
-for (j in 1:2) {
-
-  rawdatapath <- "C:/Users/bfrancis/Desktop/Coursera/Capstone/en_US"
-  
-  con <- file(paste(rawdatapath,"en_US.blogs.txt",sep="/"), "rb", encoding="UTF-8")
-  blogdata <- readLines(con)
-  close(con)
-  i <-  sample(rep(1:10),size=length(blogdata), replace=TRUE)
-  
-  blogsub <- blogdata[i==j]
-  
-  con <- file(paste(rawdatapath,"en_US.twitter.txt",sep="/"), "rb", encoding="UTF-8")
-  twitterdata <- readLines(con)
-  close(con)
-  i <-  sample(rep(1:10),size=length(twitterdata), replace=TRUE)
-  
-  twittersub <- twitterdata[i==j]
-  
-  con <- file(paste(rawdatapath,"en_US.news.txt",sep="/"), "rb", encoding="UTF-8")
-  newsdata <- readLines(con)
-  close(con)
-  i <-  sample(rep(1:10),size=length(newsdata), replace=TRUE)
-  
-  newssub <- newsdata[i==j]
-  
-  rm(blogdata, twitterdata, newsdata)
-  
-  rawsub <- c(blogsub, twittersub, newssub)
-  rm(blogsub, twittersub, newssub)
-  
-  processeddata <- cleanRawImport(rawsub)
-  rm(rawsub)
-  
-  corp <- getCorp(processeddata)
-  
-  if (j==1) initialfile <- TRUE else initialfile <- FALSE
-  
-  appendToDictionary(corp, "dictionary.csv", "ngramfrequencies", initialfile)
-  rm(corp)
-  rm(processeddata)
-}
 
 
 appendToDictionary <- function(corp, 
@@ -89,7 +37,56 @@ appendToDictionary <- function(corp,
 }
 
 replaceWordsWithIDs <- function(corp, dictionary){
-  lapply(corp, )
+  wordlookup <- as.vector(dictionary$wordID)
+  names(wordlookup) <- dictionary$word
+  
+  #turn the list into a big vector and replace the word with the word ID
+  v <- unlist(corp)
+  v <- wordlookup[v]
+  names(v) <- NULL
+  
+  #get indices to recreate list from big vector
+  f <- rep(1:length(corp),sapply(corp,length))
+
+  #turn the vector back into a list
+  newCorp <- split(v,f)
+  names(newCorp) <- NULL      
+  
+  newCorp
   
 }
 
+appendToNgram <- function(corp, filename, foldername,
+                               initialfile, ngramsize){
+  
+  
+  x <- sapply(corp, length)
+  
+  ngrams <- lapply(corp[x>(ngramsize-1)], txt.to.features, ngram.size=ngramsize)
+  new.ngramfreq <- data.table(make.frequency.list(ngrams, value=TRUE, relative=FALSE))
+  rm(ngrams)
+  gc()
+  setnames(new.ngramfreq,"data", "wordID")
+  setnames(new.ngramfreq, "N", "freq")
+  
+  
+  
+  ##check if this is the first file for the dictionary
+  ##if not bring in the existing info and get the next word ID
+  ##otherwise next word ID = 1
+  if (initialfile == FALSE){
+    repo.ngramfreq <- fread(paste(foldername, filename, sep="/"))
+    combined <- rbind(repo.ngramfreq, new.ngramfreq)
+    setkey(combined, wordID)
+    repo.ngramfreq <- combined[, freq:=.sum(freq), by=.(wordID)]
+  } else
+  { 
+    
+    repo.ngramfreq <- new.ngramfreq
+  }
+  
+  
+  write.csv(repo.ngramfreq, paste(foldername, filename, sep="/"), 
+            row.names=FALSE)
+  
+}

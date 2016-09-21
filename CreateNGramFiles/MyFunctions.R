@@ -110,22 +110,6 @@ getCorp <- function(data){
 
 createNgramFiles <- function(scorp, foldername, percov=.99, isTraining=FALSE) {
   
-  
-#  unigramfreq <- make.frequency.list(scorp, value=TRUE, relative=FALSE)
-  
-#  if (isTraining){
-#    dictionary <- read.csv(dictionaryfile)
-    
-#    removewords <- unigramfreq$data[-(unigram$data %in% dictionary$data)]
-#    scorp <- delete.stop.words(scorp, stopwords=removewords)
-#  }    
-  
-  unigramfreq <- make.frequency.list(scorp, value=TRUE, relative=FALSE)
-  
-  write.csv(unigramfreq, paste(foldername, "onegramfreqs.csv", sep="/"))
-  rm(unigramfreq)
-  gc()
-  
   x <- sapply(scorp, length)
   
   my.word.pairs <- lapply(scorp[x>1], txt.to.features, ngram.size=2)
@@ -170,17 +154,4 @@ smoothP <- function(x1, x2,  x3 ,x4, discount=.75){
   
 }
 
-
-createNGramFreqsFromRawData <- function(foldername, rawdata) {
-  
-  processeddata <- cleanRawImport(rawdata)
-  rm(rawdata)
-  
-  corp <- getCorp(processeddata)
-  rm(processeddata)
-  
-  createNgramFiles(corp, foldername)
-  rm(corp)
-
-}
 
