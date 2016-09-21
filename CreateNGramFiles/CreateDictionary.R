@@ -84,7 +84,7 @@ appendToNgram <- function(corp, filename, foldername,
   ids[,(cols):=lapply(.SD,as.integer),.SDcols=cols]
   
   #link it all back together
-  new.ngramfreq <- cbind(new.ngramfreq, ids)
+  new.ngramfreq <- cbind(ids, new.ngramfreq)
   rm(ids, cols)
   new.ngramfreq[,wordID:=NULL]
   
@@ -95,8 +95,12 @@ appendToNgram <- function(corp, filename, foldername,
     repo.ngramfreq <- fread(paste(foldername, filename, sep="/"))
     combined <- rbind(repo.ngramfreq, new.ngramfreq)
     rm(repo.ngramfreq,new.ngramfreq)
-    setkey(combined, wordID)
-    repo.ngramfreq <- combined[, .(sum(freq)), by=.(wordID)]
+    
+    #get the columns we'll group by (all expect freq)
+    bycols <- names(combined)[names(combined)!="freq"]
+   
+    setkeyv(combined, bycols)
+    repo.ngramfreq <- combined[, .(sum(freq)), by=bycols]
     rm(combined)
     setnames(repo.ngramfreq,"V1","freq")
   } else

@@ -19,7 +19,7 @@ source("CreateProbFiles.R")
 
 
 for (j in 1:2) {
-j <- 1
+
     nbrlines <- -1L
   nbrlines <- 1000
   
