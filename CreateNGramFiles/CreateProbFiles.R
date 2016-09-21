@@ -1,11 +1,11 @@
-setwd("C:/Users/bfrancis/Desktop/Coursera/Capstone")
+
 source("MyFunctions.R")
 
 
-createProbFiles <- function(foldername, onegramfile="onegramfreqs.csv", 
-                            twogramfile="twogramfreqs.csv",
-                            threegramfile="threegramfreqs.csv", 
-                            fourgramfile="fourgramfreqs.csv") 
+createProbFiles <- function(foldername, onegramfile="dictionary.csv", 
+                            twogramfile="twogramfreq.csv",
+                            threegramfile="threegramfreq.csv", 
+                            fourgramfile="fourgramfreq.csv") 
 {
 
   library(data.table)
@@ -13,11 +13,13 @@ createProbFiles <- function(foldername, onegramfile="onegramfreqs.csv",
   s <- Sys.time()
   
   onegram.dt <- fread(paste(foldername, onegramfile, sep="/"))
-  onegram.dt[,V1:=NULL]
-  setnames(onegram.dt,"data", "ngram")
-  setnames(onegram.dt, "Freq", "ngramcount")
+  onegram.dt[,word:=NULL]
+  setnames(onegram.dt,"wordID", "ngram")
+  setnames(onegram.dt, "freq", "ngramcount")
   onegram.dt[, p:=ngramcount/sum(ngramcount)]
+  onegram.dt$ngram <- as.character(onegram.dt$ngram)
   
+  onegram.dt$p <- signif(onegram.dt$p,4)
   write.csv(onegram.dt, paste(foldername,"onegram.prob.csv",sep="/"),
             row.names=FALSE)
   
@@ -31,9 +33,8 @@ createProbFiles <- function(foldername, onegramfile="onegramfreqs.csv",
   s <- Sys.time()
   
   twogram.dt <- fread(paste(foldername, twogramfile, sep="/"))
-  twogram.dt[,V1:=NULL]
-  setnames(twogram.dt,"data", "ngram")
-  setnames(twogram.dt, "Freq", "ngramcount")
+  setnames(twogram.dt,"wordID", "ngram")
+  setnames(twogram.dt, "freq", "ngramcount")
 
    setkey(twogram.dt,ngram)
    
@@ -69,6 +70,8 @@ createProbFiles <- function(foldername, onegramfile="onegramfreqs.csv",
   rm(onegram.dt)
   gc()
   
+  twogram.dt$p <- signif(twogram.dt$p,4)
+  
   write.csv(twogram.dt[,.(lookup,prediction,p)], 
             paste(foldername,"twogram.prob.csv",sep="/"),
             row.names=FALSE)
@@ -85,9 +88,8 @@ createProbFiles <- function(foldername, onegramfile="onegramfreqs.csv",
   
   #read in trigram frequencies
   threegram.dt <- fread(paste(foldername, threegramfile, sep="/"))
-  threegram.dt[,V1:=NULL]
-  setnames(threegram.dt,"data", "ngram")
-  setnames(threegram.dt, "Freq", "ngramcount")
+  setnames(threegram.dt,"wordID", "ngram")
+  setnames(threegram.dt, "freq", "ngramcount")
   
   ## get the "lookup" (the conditional phrase) and the "prediction (the word we predict)
   setkey(threegram.dt,ngram)
@@ -144,6 +146,8 @@ createProbFiles <- function(foldername, onegramfile="onegramfreqs.csv",
   #drop columns we don't need anymore
   #threegram.dt[,c("three.cardGivenCondition", "bigram.p"):=NULL]
   
+   threegram.dt$p <- signif(threegram.dt$p,4)
+   
    write.csv(threegram.dt[, .(lookup,prediction,p)], 
              paste(foldername,"threegram.prob.csv",sep="/"),
              row.names=FALSE)
@@ -160,9 +164,8 @@ createProbFiles <- function(foldername, onegramfile="onegramfreqs.csv",
   
    #read in fourgram frequencies
    fourgram.dt <- fread(paste(foldername, fourgramfile, sep="/"))
-   fourgram.dt[,V1:=NULL]
-   setnames(fourgram.dt,"data", "ngram")
-   setnames(fourgram.dt, "Freq", "ngramcount")
+   setnames(fourgram.dt,"wordID", "ngram")
+   setnames(fourgram.dt, "freq", "ngramcount")
    
    e <- Sys.time()
    print('read 4gram time')
@@ -245,6 +248,8 @@ createProbFiles <- function(foldername, onegramfile="onegramfreqs.csv",
    
    s <- Sys.time()
    
+   fourgram.dt$p <- signif(onegram.dt$p,4)
+   
    write.csv(fourgram.dt[, .(lookup,prediction,p)], 
              paste(foldername,"fourgram.prob.csv",sep="/"),
              row.names=FALSE)
@@ -262,4 +267,3 @@ createProbFiles <- function(foldername, onegramfile="onegramfreqs.csv",
    s <- Sys.time()
 }
 
-createProbFiles("alltrain")

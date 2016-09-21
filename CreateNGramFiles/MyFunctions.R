@@ -108,50 +108,16 @@ getCorp <- function(data){
 
 
 
-createNgramFiles <- function(scorp, foldername, percov=.99, isTraining=FALSE) {
-  
-  x <- sapply(scorp, length)
-  
-  my.word.pairs <- lapply(scorp[x>1], txt.to.features, ngram.size=2)
-  bigramfreq <- make.frequency.list(my.word.pairs, value=TRUE, relative=FALSE)
-  rm(my.word.pairs)
-  gc
-  write.csv(bigramfreq, paste(foldername, "twogramfreqs.csv", sep="/"))
-  rm(bigramfreq)
-  gc()
-  
-  my.word.triplets <- lapply(scorp[x>2], txt.to.features, ngram.size=3)
-  trigramfreq <- make.frequency.list(my.word.triplets, value=TRUE, relative=FALSE)
-  rm(my.word.triplets)
-  gc()
-  write.csv(trigramfreq, paste(foldername, "threegramfreqs.csv", sep="/"))
-  rm(trigramfreq)
-  gc()
-  
-  #stick to trigrams for now
-   my.word.quad <- lapply(scorp[x>3], txt.to.features, ngram.size=4)
-   rm(scorp)
-   gc()
-   
-   quadgramfreq <- make.frequency.list(my.word.quad, value=TRUE, relative=FALSE)
-   rm(my.word.quad)
-   gc()
-   write.csv(quadgramfreq, paste(foldername, "fourgramfreqs.csv", sep="/"))
-   rm(quadgramfreq)
-   gc()
-  
-}
 
 
 smoothP <- function(x1, x2,  x3 ,x4, discount=.75){
   
-  firstterm <- pmax((x1 - discount),0)/x2
-  secondterm <- (discount/x2)*x3
-  thirdterm <- x4
-  p <- firstterm + (secondterm*thirdterm)
-  
-  data.table(p)
+  (pmax((x1 - discount),0)/x2) + (((discount/x2)*x3) *x4)
   
 }
+
+
+sizeGB <- function(x){object.size(x)/1e+09}
+
 
 

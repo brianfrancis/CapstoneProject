@@ -69,7 +69,24 @@ appendToNgram <- function(corp, filename, foldername,
   setnames(new.ngramfreq,"data", "wordID")
   setnames(new.ngramfreq, "N", "freq")
   
+  #split the ngram into a column per wordID
+  ids <- new.ngramfreq[, tstrsplit(wordID, " ", fixed=TRUE)]
+  #rename the columns
+  for(i in 1:ncol(ids)){
+    if (i < ncol(ids)){
+      setnames(ids,i,paste("cond",i, sep=""))
+      
+    } else
+    {setnames(ids,i,"prediction")}
+  }
+  #change the wordIDs from character to integer (huge memory savings) 
+  cols <- names(ids)
+  ids[,(cols):=lapply(.SD,as.integer),.SDcols=cols]
   
+  #link it all back together
+  new.ngramfreq <- cbind(new.ngramfreq, ids)
+  rm(ids, cols)
+  new.ngramfreq[,wordID:=NULL]
   
   ##check if this is the first file for the dictionary
   ##if not bring in the existing info and get the next word ID
@@ -77,8 +94,11 @@ appendToNgram <- function(corp, filename, foldername,
   if (initialfile == FALSE){
     repo.ngramfreq <- fread(paste(foldername, filename, sep="/"))
     combined <- rbind(repo.ngramfreq, new.ngramfreq)
+    rm(repo.ngramfreq,new.ngramfreq)
     setkey(combined, wordID)
-    repo.ngramfreq <- combined[, freq:=.sum(freq), by=.(wordID)]
+    repo.ngramfreq <- combined[, .(sum(freq)), by=.(wordID)]
+    rm(combined)
+    setnames(repo.ngramfreq,"V1","freq")
   } else
   { 
     
@@ -88,5 +108,10 @@ appendToNgram <- function(corp, filename, foldername,
   
   write.csv(repo.ngramfreq, paste(foldername, filename, sep="/"), 
             row.names=FALSE)
+  
+}
+
+
+replaceFirstWordWithUNK <- function(corp, dictionary){
   
 }
