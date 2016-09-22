@@ -1,3 +1,11 @@
+# U.S. turning in us ?????
+# how to handle abbreviations?????
+# sentence detection may also help.
+
+# /S /???  - remove individual characters other than a / i ???
+# change U.S. to United States and U.S.A. to United States
+
+
 # library(tm)
 # library(stringi)
 # library(RWeka)
@@ -12,9 +20,6 @@
 # 
 
 setwd("C:/Users/bfrancis/Desktop/Coursera/Capstone/CapstoneProject/CreateNGramFiles")
-source("MyFunctions.R")
-source("CreateDictionary.R")
-source("CreateProbFiles.R")
 
 
 # take a raw data file and append to ngram freqs (val and training)
@@ -28,8 +33,13 @@ rawDataToNgramFreqs <- function(rawdata.folder, rawdata.filename,
                                 nbrlines = -1L, initial.run=FALSE)
 {
   
+
   #set the seed
   set.seed(123)
+
+  source("MyFunctions.R")
+  source("CreateDictionary.R")
+  source("CreateProbFiles.R")
   
   con <- file(paste(rawdata.folder,rawdata.filename,sep="/"), "rb", encoding="UTF-8")
   rawdata <- readLines(con, n=nbrlines)
@@ -52,10 +62,10 @@ rawDataToNgramFreqs <- function(rawdata.folder, rawdata.filename,
     rawsub <- rawdata[i==j]
     
     processeddata <- cleanRawImport(rawsub)
-    rm(rawsub)
+  #  rm(rawsub)
     
     wordCorp <- getCorp(processeddata)
-    rm(processeddata)
+    #rm(processeddata)
     
     # check if this is the first time we're running anything - if so over-write files
     # otherwise we append to the existing files
@@ -86,11 +96,11 @@ rawDataToNgramFreqs <- function(rawdata.folder, rawdata.filename,
     
 
   }
-  
+  rawsub
 }
 
 
-rawDataToNgramFreqs(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
+r <- rawDataToNgramFreqs(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.blogs.txt",
                     nbrlines = 1000,
                     initial.run = TRUE)

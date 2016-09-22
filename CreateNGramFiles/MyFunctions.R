@@ -11,16 +11,18 @@ cleanRawImport <- function(data, forprediction=FALSE) {
   
   Encoding(data) <- "UTF-8"
   
+  data <- stri_trans_general(data, "latin-ascii")
+  
   #get rid of weird characters
   data <- gsub("[^[:graph:]]", " ", data)
   
-  data <- stri_trans_general(data, "latin-ascii")
+  
   
   #remove numbers
   data <- removeNumbers(data)
   
   #remove space between proper names (only works for two word names)
-  data <- gsub("([A-Z][a-z]+)( )([A-Z])", "\\1\\3", data)
+  #data <- gsub("([A-Z][a-z]+)( )([A-Z])", "\\1\\3", data)
   
   data <- tolower(data)
   
@@ -28,12 +30,13 @@ cleanRawImport <- function(data, forprediction=FALSE) {
   data <- gsub("/", " " ,data)
   
   ##change new york to newyork
-  data <- gsub("new york", "newyork", data)
+  #data <- gsub("new york", "newyork", data)
+  
   #change san diego san francisco et.c to sandiego sanfransico etc.
-  data <- gsub("san ", "san", data)
+  #data <- gsub("san ", "san", data)
   
   #remove a single letter followed by a period (probably an initial)
-  gsub("( [A-Za-z])\\. ", " ", data)
+  #gsub("( [A-Za-z])\\. ", " ", data)
   
   
   # fix contractions
@@ -57,9 +60,14 @@ cleanRawImport <- function(data, forprediction=FALSE) {
   data <- gsub("([a-z])('re)", "\\1 are", data)
   data <- gsub("([a-z])('m)", "\\1 am", data)
   data <- gsub("([a-z])('ve)", "\\1 have", data)
+  data <- gsub("([a-z])('ll)", "\\1 will", data)
   
   # remove apostrophe s
   data <- gsub("([a-z])('s)", "\\1", data)
+  
+  #data <- gsub("usa", "united states")  - replace in corp ???
+  data <- gsub("u.s.a.", "united states")
+  data <- gsub("u.s.", "united states")
   
   
   ##remove punctuation excpet dashes or apostrophes
@@ -75,6 +83,9 @@ cleanRawImport <- function(data, forprediction=FALSE) {
   
   #plain text document
   data <- PlainTextDocument(data)$content
+  
+  # add leading characters to help predict if beginning of sentence
+  data <- paste("<start> <start> <start> ", data)
   
   if (forprediction==FALSE){
     # add end of document characters so we have a full n-gram for every word
@@ -97,12 +108,12 @@ getCorp <- function(data){
   
 #!!!!!!! try keeping stop words and pronouns???  might be something we want to predict
   #delete pronouns
-  scorp <- lapply(scorp, delete.stop.words,
-                  stop.words = stylo.pronouns(language = "English"))
+#  scorp <- lapply(scorp, delete.stop.words,
+#                  stop.words = stylo.pronouns(language = "English"))
   
   #remove other very common and unhelpful words
-  scorp <- lapply(scorp, delete.stop.words,
-                  stop.words = c("the", "a", "an", "and", "but", "it"))
+#  scorp <- lapply(scorp, delete.stop.words,
+#                  stop.words = c("the", "a", "an", "and", "but", "it"))
   
   # replace words with very similiar meaning (expand list to other "stop" words)
   
