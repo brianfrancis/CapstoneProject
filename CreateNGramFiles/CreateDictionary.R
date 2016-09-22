@@ -3,10 +3,15 @@
 appendToDictionary <- function(corp, 
                                dict.filename, dict.foldername,
                                initialfile){
+ 
+  library(data.table)
+  library(stylo)
   
-  unigramfreq <- data.table(make.frequency.list(corp, value=TRUE, relative=FALSE))
-  setnames(unigramfreq,"data", "word")
-  setnames(unigramfreq, "N", "freq")
+  words <- data.table(make.frequency.list(corp))
+  setnames(words,"V1", "word")
+  setkey(words,word)
+  #setnames(unigramfreq, "N", "freq")
+  
   #setnames ??
   
   
@@ -15,18 +20,20 @@ appendToDictionary <- function(corp,
   ##otherwise next word ID = 1
   if (initialfile == FALSE){
     dictionary <- fread(paste(dict.foldername, dict.filename, sep="/"))
+    setkey(dictionary,word)
     nextindex <- max(dictionary$wordID) + 1
-    unigramfreq[,wordID := seq(nextindex, (nextindex-1+nrow(unigramfreq)))]
-    combined <- rbind(dictionary, unigramfreq)
-    setkey(combined, word)
-    dictionary <- combined[, .(min(wordID), sum(freq)), by=.(word)]
-    setnames(dictionary,"V1","wordID")
-    setnames(dictionary,"V2","freq")
+    
+    # get words not in dictionary
+    new.words <- dictionary[words,on=c(word="word")]
+    new.words <- new.words[is.na(wordID),]
+    new.words[,wordID := seq(nextindex, (nextindex-1+nrow(new.words)))]
+    dictionary <- rbind(dictionary, new.words)
+    
   } else
   { 
     nextindex <- 1
-    unigramfreq[,wordID := seq(1, nrow(unigramfreq))]
-    dictionary <- unigramfreq
+    words[,wordID := seq(1, nrow(words))]
+    dictionary <- words
   }
   
   
@@ -59,6 +66,8 @@ replaceWordsWithIDs <- function(corp, dictionary){
 appendToNgram <- function(corp, filename, foldername,
                                initialfile, ngramsize){
   
+  library(data.table)
+  library(stylo)
   
   x <- sapply(corp, length)
   

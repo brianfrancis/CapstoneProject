@@ -1,8 +1,8 @@
 
-source("MyFunctions.R")
 
 
-createProbFiles <- function(foldername, onegramfile="dictionary.csv", 
+
+createProbFiles <- function(foldername, onegramfile="onegramfreq.csv", 
                             twogramfile="twogramfreq.csv",
                             threegramfile="threegramfreq.csv", 
                             fourgramfile="fourgramfreq.csv") 
@@ -13,8 +13,6 @@ createProbFiles <- function(foldername, onegramfile="dictionary.csv",
   s <- Sys.time()
   
   onegram.dt <- fread(paste(foldername, onegramfile, sep="/"))
-  onegram.dt[,word:=NULL]
-  setnames(onegram.dt,"wordID", "prediction")
   #setnames(onegram.dt, "freq", "ngramcount")
   onegram.dt[, p:=freq/sum(freq)]
   #onegram.dt$ngram <- as.character(onegram.dt$ngram)
@@ -270,3 +268,9 @@ createProbFiles <- function(foldername, onegramfile="dictionary.csv",
    s <- Sys.time()
 }
 
+
+smoothP <- function(x1, x2,  x3 ,x4, discount=.75){
+  
+  (pmax((x1 - discount),0)/x2) + (((discount/x2)*x3) *x4)
+  
+}

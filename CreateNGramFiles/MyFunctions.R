@@ -2,6 +2,13 @@
 #? unknown words - first instance <UNK>
 
 cleanRawImport <- function(data, forprediction=FALSE) {
+  library(tm)
+  #library(stringi)
+  #library(RWeka)
+  #library(slam)
+  library(stylo); 
+  #library(data.table)
+  
   Encoding(data) <- "UTF-8"
   
   #get rid of weird characters
@@ -84,9 +91,11 @@ cleanRawImport <- function(data, forprediction=FALSE) {
 }
 
 getCorp <- function(data){
+  library(stylo)
   
   scorp <- lapply(data, txt.to.words, splitting.rule="[[:space:]]")
   
+#!!!!!!! try keeping stop words and pronouns???  might be something we want to predict
   #delete pronouns
   scorp <- lapply(scorp, delete.stop.words,
                   stop.words = stylo.pronouns(language = "English"))
@@ -98,23 +107,15 @@ getCorp <- function(data){
   # replace words with very similiar meaning (expand list to other "stop" words)
   
 #!!!!!!!!!!!! this needs to be fixed (after test set processed??)
-  f <- function(x) gsub("is|are|am","be",x)
-  scorp <- lapply(scorp, f)
+    #just take it out ??  not good for prediction anyway
+#  f <- function(x) gsub("is|are|am","be",x)
+#  scorp <- lapply(scorp, f)
   
-  f <- function(x) gsub("this|these|those","that",x)
-  scorp <- lapply(scorp, f)
-  
-}
-
-
-
-
-
-smoothP <- function(x1, x2,  x3 ,x4, discount=.75){
-  
-  (pmax((x1 - discount),0)/x2) + (((discount/x2)*x3) *x4)
+#  f <- function(x) gsub("this|these|those","that",x)
+#  scorp <- lapply(scorp, f)
   
 }
+
 
 
 sizeGB <- function(x){object.size(x)/1e+09}
