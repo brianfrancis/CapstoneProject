@@ -10,13 +10,21 @@ library(data.table)
 highestngram <- 4
 
 ##read in probability tables
+dictionary <- fread("dictionary.csv")
 onegram.dt <- fread("onegram.prob.csv")
 twogram.dt <- fread("twogram.prob.csv")
 threegram.dt <- fread("threegram.prob.csv")
 fourgram.dt <- fread("fourgram.prob.csv")
 
-setnames(onegram.dt,"ngram", "prediction")
-setkey(onegram.dt, prediction, p)
-setkey(twogram.dt, lookup, prediction)
-setkey(threegram.dt, lookup, prediction)
-setkey(fourgram.dt, lookup, prediction)
+
+setkey(dictionary,wordID)
+setkey(onegram.dt, prediction)
+setkey(twogram.dt, cond1, prediction)
+setkey(threegram.dt, cond1,cond2, prediction)
+setkey(fourgram.dt, cond1,cond2,cond3, prediction)
+
+#drop any words from dictionary that aren't in our training set (will have test and val stuff)
+dictionary <- dictionary[onegram.dt[,.(prediction)], on=c(wordID="prediction")]
+
+#setwd("C:/Users/bfrancis/Desktop/Coursera/Capstone/CapstoneProject/ShinyApp")
+

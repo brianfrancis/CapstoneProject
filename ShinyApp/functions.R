@@ -1,32 +1,24 @@
 
 
 cleanRawImport <- function(data, forprediction=FALSE) {
-  Encoding(data) <- "UTF-8"
+  library(tm)
+  library(stylo); 
   
-  #get rid of weird characters
-  data <- gsub("[^[:graph:]]", " ", data)
+  data <- tolower(data)
   
-  data <- stri_trans_general(data, "latin-ascii")
+  #remove web sites
+  data <- gsub("(f|ht)tp(s?)://(.*)[.][a-z]+", "", data)
+  
+  data <- gsub("(?<=^|\\s)#\\S+","", data, perl=TRUE)
+  
+  #remove emails
+  data <- gsub("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+", "", data, perl=TRUE)
   
   #remove numbers
   data <- removeNumbers(data)
   
-  #remove space between proper names (only works for two word names)
-  data <- gsub("([A-Z][a-z]+)( )([A-Z])", "\\1\\3", data)
-  
-  data <- tolower(data)
-  
   ##replace a / or . with a space
   data <- gsub("/", " " ,data)
-  
-  ##change new york to newyork
-  data <- gsub("new york", "newyork", data)
-  #change san diego san francisco et.c to sandiego sanfransico etc.
-  data <- gsub("san ", "san", data)
-  
-  #remove a single letter followed by a period (probably an initial)
-  gsub("( [A-Za-z])\\. ", " ", data)
-  
   
   # fix contractions
   data <- gsub("can't|can not", "cannot", data)
@@ -49,9 +41,14 @@ cleanRawImport <- function(data, forprediction=FALSE) {
   data <- gsub("([a-z])('re)", "\\1 are", data)
   data <- gsub("([a-z])('m)", "\\1 am", data)
   data <- gsub("([a-z])('ve)", "\\1 have", data)
+  data <- gsub("([a-z])('ll)", "\\1 will", data)
   
   # remove apostrophe s
   data <- gsub("([a-z])('s)", "\\1", data)
+  
+  #data <- gsub("usa", "united states")  - replace in corp ???
+  data <- gsub("u.s.a.", "united states", data)
+  data <- gsub("u.s.", "united states", data)
   
   
   ##remove punctuation excpet dashes or apostrophes
@@ -65,19 +62,13 @@ cleanRawImport <- function(data, forprediction=FALSE) {
   #replace any remaining dash with a space
   data <- gsub("-", " ", data)
   
-  #plain text document
-  data <- PlainTextDocument(data)$content
   
-  # add end of document characters so we have a full n-gram for every word
-  #don't do this when predicting
-  if (forprediction==FALSE) {
+  if (forprediction==FALSE){
+    # add end of document characters so we have a full n-gram for every word
     data <- paste(data, " <end> <end> <end>")
   }
   
   data <- stripWhitespace(data)
-  
-  #stem ?? - do or don't
-  # data <- stemDocument(data)
   
   data
   
@@ -86,23 +77,6 @@ cleanRawImport <- function(data, forprediction=FALSE) {
 getCorp <- function(data){
   
   scorp <- lapply(data, txt.to.words, splitting.rule="[[:space:]]")
-  
-  #delete pronouns
-  scorp <- lapply(scorp, delete.stop.words,
-                  stop.words = stylo.pronouns(language = "English"))
-  
-  #remove other very common and unhelpful words
-  scorp <- lapply(scorp, delete.stop.words,
-                  stop.words = c("the", "a", "an", "and", "but", "it"))
-  
-  # replace words with very similiar meaning (expand list to other "stop" words)
-  
-  #!!!!!!!!!!!! this needs to be fixed (after test set processed??)
-  f <- function(x) gsub("is|are|am","be",x)
-  scorp <- lapply(scorp, f)
-  
-  f <- function(x) gsub("this|these|those","that",x)
-  scorp <- lapply(scorp, f)
   
 }
 
@@ -113,12 +87,16 @@ cleanInput <- function (input){
   input <- substr(input, 1, nchar(input) - nchar(partial))
 
   clean <- cleanRawImport(input, forprediction = TRUE)
+  
+  # add leading characters to help predict if beginning of sentence
+  clean <- paste("<start> <start> <start> ", clean)
+  
   corp <- unlist(getCorp(clean))
-  dictionary <- onegram.dt$prediction
-  corp <-  corp[corp %in% dictionary]
-  output <- paste(corp, sep="", collapse=" ")
-  output
-  #remove stop words
+  corp <- replaceWordsWithIDs(corp, dictionary)
+  
+  #remove words not in dictionary (change to UNK them instread???)
+  corp <-  corp[corp %in% dictionary$wordID]
+  corp
 }
 
 #get part of the word we're trying to predict in case the user
@@ -145,7 +123,7 @@ predictNextWordKN <- function(input) {
   ##need to remove the last part of the phrase if there is a space ???
   x <- cleanInput(input)
   
-  x <- unlist(strsplit(x, " "))
+
   l <- length(x)
   ##just keep the last maxngram - 1 words
   if (l > (highestngram-1)) {
@@ -156,38 +134,26 @@ predictNextWordKN <- function(input) {
   p2 <- data.table()
   p3 <- data.table()
   p4 <- data.table()
-  for (i in length(x):0) {
-    
-    if (i == 3) {
   
-      p1 <- fourgram.dt[lookup==paste(x, collapse=" ") ,
-                        .(prediction, p)]
-      
-      
-    }
-    if (i == 2) {
-      l <- paste(x[(length(x)-1): length(x)], collapse=" ")
-      p2 <- threegram.dt[lookup==l,
-                         .(prediction, p)]
-  
-      
-      
-    }
-    if (i == 1) {
-      l <- x[length(x)]
-      p3 <- twogram.dt[lookup==l,
-                       .(prediction, p)]
-      
-    }
-    if (i == 0) {
-      p4 <- onegram.dt[,.(prediction, p)]
-      
-    }
     
+  if (l == 3) {
+
+    p1 <- fourgram.dt[cond1==x[(length(x)-2)] & cond2==x[(length(x)-1)] & cond3==x[length(x)] ,
+                      .(prediction, p)]
   }
-  
+  if (l >= 2) {
+    
+    p2 <- threegram.dt[cond1==x[(length(x)-1)] & cond2==x[length(x)],
+                       .(prediction, p)]
+  }
+  if (l >= 1) {
+    p3 <- twogram.dt[cond1==x[length(x)],
+                     .(prediction, p)]
+  }
+  p4 <- onegram.dt[,.(prediction, p)]
   
   allp <- data.table()   
+  
   #backoff in case our condition doesn't exist in higher order n-gram
   if (nrow(p1) > 0) {
     p1[,ngramlevel := 4]
@@ -207,12 +173,7 @@ predictNextWordKN <- function(input) {
   allp <- rbind(allp,p4)
   allp <- data.table(allp)
   
-  if (nchar(partial)>0){
-    setkey(allp, "prediction")
-    allp <- allp[grepl(partial, prediction),]
-  }
-  
-  setkey(allp, "ngramlevel", "p")
+  #setkey(allp, "ngramlevel", "p")
   #allp[,maxngramlevel:= max(ngramlevel), by=prediction]
   #allp <- allp[ngramlevel==maxngramlevel,]
   allp <- allp[order(-ngramlevel,-p)]
@@ -222,8 +183,15 @@ predictNextWordKN <- function(input) {
   print (e-s)
   
   
-  unique(allp$prediction)
+  predictions <- unique(allp$prediction)
   
+  predictions <- replaceIDsWithWords(predictions, dictionary)
+  
+  if (nchar(partial)>0){
+    predictions <- predictions[grepl(partial, predictions)]
+  }
+  
+  predictions
 }
 
 #trim whitespace
@@ -234,3 +202,26 @@ substrRight <- function(x, n){
   substr(x, nchar(x)-n+1, nchar(x))
 }
 
+
+
+replaceWordsWithIDs <- function(v, dictionary){
+  idlookup <- as.vector(dictionary$wordID)
+  names(idlookup) <- dictionary$word
+  
+  #replace words with ids
+  v <- idlookup[v]
+  names(v) <- NULL
+  
+  v
+}
+
+replaceIDsWithWords <- function(v, dictionary){
+  wordlookup <- as.vector(dictionary$word)
+  names(wordlookup) <- dictionary$wordID
+  
+  #replace words with ids
+  v <- wordlookup[v]
+  names(v) <- NULL
+  
+  v
+}

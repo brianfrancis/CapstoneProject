@@ -37,8 +37,7 @@ appendToDictionary <- function(corp,
   }
   
   
-  write.csv(dictionary, paste(dict.foldername, dict.filename, sep="/"), 
-            row.names=FALSE)
+  fwrite(dictionary, paste(dict.foldername, dict.filename, sep="/"))
 
   dictionary  
 }
@@ -119,8 +118,7 @@ appendToNgram <- function(corp, filename, foldername,
   }
   
   
-  write.csv(repo.ngramfreq, paste(foldername, filename, sep="/"), 
-            row.names=FALSE)
+  fwrite(repo.ngramfreq, paste(foldername, filename, sep="/"))
   
 }
 
