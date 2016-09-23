@@ -66,8 +66,8 @@ cleanRawImport <- function(data, forprediction=FALSE) {
   data <- gsub("([a-z])('s)", "\\1", data)
   
   #data <- gsub("usa", "united states")  - replace in corp ???
-  data <- gsub("u.s.a.", "united states")
-  data <- gsub("u.s.", "united states")
+  data <- gsub("u.s.a.", "united states", data)
+  data <- gsub("u.s.", "united states", data)
   
   
   ##remove punctuation excpet dashes or apostrophes

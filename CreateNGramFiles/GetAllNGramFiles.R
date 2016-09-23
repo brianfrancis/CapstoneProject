@@ -19,6 +19,16 @@
 #                  , "train6", "train7", "train8", "test", "validation")
 # 
 
+#code to check unigrams (look for weird words)
+onegram <- fread("train/onegramfreq.csv")
+dictionary <- fread("dictionary/dictionary.csv")
+setkey(dictionary,wordID)
+setkey(onegram,wordID)
+setkey(onegram,prediction)
+x <- onegram[dictionary]
+x <- x[order(-freq)]
+
+
 setwd("C:/Users/bfrancis/Desktop/Coursera/Capstone/CapstoneProject/CreateNGramFiles")
 
 
@@ -62,10 +72,10 @@ rawDataToNgramFreqs <- function(rawdata.folder, rawdata.filename,
     rawsub <- rawdata[i==j]
     
     processeddata <- cleanRawImport(rawsub)
-  #  rm(rawsub)
+    rm(rawsub)
     
     wordCorp <- getCorp(processeddata)
-    #rm(processeddata)
+    rm(processeddata)
     
     # check if this is the first time we're running anything - if so over-write files
     # otherwise we append to the existing files
@@ -76,7 +86,8 @@ rawDataToNgramFreqs <- function(rawdata.folder, rawdata.filename,
                                      dictionary.folder, initialfile)
     
     idCorp <- replaceWordsWithIDs(wordCorp, dictionary)
-    rm(wordCorp)
+    rm(wordCorp, dictionary)
+    gc()
     
     #initial ngram creation if intial run and j = 1 (first train) or 9 / 10 (first train / validation)
     if ((j==1 || j > 8)  && initial.run==TRUE) initialfile <- TRUE else initialfile <- FALSE
@@ -93,26 +104,30 @@ rawDataToNgramFreqs <- function(rawdata.folder, rawdata.filename,
     appendToNgram(idCorp, filename="fourgramfreq.csv", foldername=foldername, 
                   initialfile, ngramsize=4)
     
-    
+    rm(iCorp)
+    gc()
 
   }
-  rawsub
+  
 }
 
 
-r <- rawDataToNgramFreqs(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
+rawDataToNgramFreqs(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.blogs.txt",
-                    nbrlines = 1000,
+                 #   nbrlines = 1000,
                     initial.run = TRUE)
 
 rawDataToNgramFreqs(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.news.txt",
-                    nbrlines = 1000,
+                #    nbrlines = 1000,
                     initial.run = FALSE)
 
 rawDataToNgramFreqs(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.twitter.txt",
-                    nbrlines = 1000,
+                #    nbrlines = 1000,
                     initial.run = FALSE)
+
+
+source("CreateProbFiles.R")
 
 createProbFiles("train")
