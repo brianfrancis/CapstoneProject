@@ -16,15 +16,21 @@ cleanRawImport <- function(data, forprediction=FALSE) {
   #get rid of weird characters
   data <- gsub("[^[:graph:]]", " ", data)
   
+  data <- tolower(data)
   
+  #remove web sites
+  data <- gsub("(f|ht)tp(s?)://(.*)[.][a-z]+", "", data)
+  
+  data <- gsub("(?<=^|\\s)#\\S+","", data, perl=TRUE)
+  
+  #remove emails
+  data <- gsub("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+", "", data, perl=TRUE)
   
   #remove numbers
   data <- removeNumbers(data)
   
   #remove space between proper names (only works for two word names)
   #data <- gsub("([A-Z][a-z]+)( )([A-Z])", "\\1\\3", data)
-  
-  data <- tolower(data)
   
   ##replace a / or . with a space
   data <- gsub("/", " " ,data)
