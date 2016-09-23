@@ -17,7 +17,7 @@ createProbFiles <- function(foldername, onegramfile="onegramfreq.csv",
   
   onegram.dt[,c("p"):= signif(onegram.dt$p,4)]
   
-  fwrite(onegram.dt(,.(prediction,p)), paste(foldername,"onegram.prob.csv",sep="/"))
+  fwrite(onegram.dt[,.(prediction,p)], paste(foldername,"onegram.prob.csv",sep="/"))
   
   
   e <- Sys.time()

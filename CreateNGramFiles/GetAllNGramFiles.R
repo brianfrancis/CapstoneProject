@@ -20,6 +20,7 @@
 # 
 
 #code to check unigrams (look for weird words)
+
 onegram <- fread("train/onegramfreq.csv")
 dictionary <- fread("dictionary/dictionary.csv")
 setkey(dictionary,wordID)
@@ -104,7 +105,7 @@ rawDataToNgramFreqs <- function(rawdata.folder, rawdata.filename,
     appendToNgram(idCorp, filename="fourgramfreq.csv", foldername=foldername, 
                   initialfile, ngramsize=4)
     
-    rm(iCorp)
+    rm(idCorp)
     gc()
 
   }
@@ -112,22 +113,30 @@ rawDataToNgramFreqs <- function(rawdata.folder, rawdata.filename,
 }
 
 
+trainfolder <- "train"
+testfolder <- "test"
+valfolder <- "validation"
+
 rawDataToNgramFreqs(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.blogs.txt",
-                 #   nbrlines = 1000,
-                    initial.run = TRUE)
+                    nbrlines = 1000,
+                    initial.run = TRUE,
+                    train.folder=trainfolder,test.folder=testfolder,
+                    val.folder=valfolder)
 
 rawDataToNgramFreqs(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.news.txt",
-                #    nbrlines = 1000,
-                    initial.run = FALSE)
+                    nbrlines = 1000,
+                    train.folder=trainfolder,test.folder=testfolder,
+                    val.folder=valfolder)
 
 rawDataToNgramFreqs(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.twitter.txt",
-                #    nbrlines = 1000,
-                    initial.run = FALSE)
+                    nbrlines = 1000,
+                    train.folder=trainfolder,test.folder=testfolder,
+                    val.folder=valfolder)
 
 
 source("CreateProbFiles.R")
 
-createProbFiles("train")
+createProbFiles(trainfolder)

@@ -1,0 +1,4 @@
+80% - no stop words removed
+"perplexity: 2094 | oov: 0.3826"
+"perplexity: 107.9 | oov: 0.6004"
+"perplexity: 22.88 | oov: 0.7716"

@@ -3,7 +3,7 @@
 
 cleanRawImport <- function(data, forprediction=FALSE) {
   library(tm)
-  #library(stringi)
+  library(stringi)
   #library(RWeka)
   #library(slam)
   library(stylo); 
