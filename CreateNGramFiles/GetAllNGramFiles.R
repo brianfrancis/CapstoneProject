@@ -21,13 +21,18 @@
 
 #code to check unigrams (look for weird words)
 
-onegram <- fread("train/onegramfreq.csv")
-dictionary <- fread("dictionary/dictionary.csv")
-setkey(dictionary,wordID)
-setkey(onegram,wordID)
-setkey(onegram,prediction)
-x <- onegram[dictionary]
-x <- x[order(-freq)]
+ fourgram <- fread("case4/train/fourgramfreq.csv")
+ dictionary <- fread("case4/dictionary/dictionary.csv")
+ setkey(dictionary,wordID)
+
+  setnames(dictionary,"word","cond1")
+ setkey(fourgram,cond1)
+ x <- fourgram[dictionary]
+ 
+ setnames(dictionary,"cond1","prediction")
+ setkey(x,prediction)
+ x <- x[dictionary]
+ x <- x[order(-freq)]
 
 
 setwd("C:/Users/bfrancis/Desktop/Coursera/Capstone/CapstoneProject/CreateNGramFiles")
@@ -75,9 +80,12 @@ rawDataToNgramFreqs <- function(rawdata.folder, rawdata.filename,
     processeddata <- cleanRawImport(rawsub)
     rm(rawsub)
     
+    s <- Sys.time()
+  
     wordCorp <- getCorp(processeddata)
     rm(processeddata)
-    
+   
+     
     # check if this is the first time we're running anything - if so over-write files
     # otherwise we append to the existing files
     if (j==1 && initial.run==TRUE) initialfile <- TRUE else initialfile <- FALSE
@@ -107,34 +115,47 @@ rawDataToNgramFreqs <- function(rawdata.folder, rawdata.filename,
     
     rm(idCorp)
     gc()
+    
+    e <- Sys.time()
+    print('tiime to go from processed data to ngrams')
+    print(e-s)
+    
 
   }
-  
 }
 
 
-trainfolder <- "train"
-testfolder <- "test"
-valfolder <- "validation"
+
+setwd("C:/Users/bfrancis/Desktop/Coursera/Capstone/CapstoneProject/CreateNGramFiles")
+
+case <- "case4"
+
+trainfolder <- paste(case,"train", sep="/")
+testfolder <- paste(case,"test", sep="/")
+valfolder <- paste(case,"validation", sep="/")
+dictfolder <- paste(case,"dictionary", sep="/")
 
 rawDataToNgramFreqs(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.blogs.txt",
-                    nbrlines = 1000,
+                    nbrlines = 10000,
                     initial.run = TRUE,
                     train.folder=trainfolder,test.folder=testfolder,
-                    val.folder=valfolder)
+                    val.folder=valfolder,
+                    dictionary.folder=dictfolder)
 
 rawDataToNgramFreqs(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.news.txt",
-                    nbrlines = 1000,
+                    nbrlines = 10000,
                     train.folder=trainfolder,test.folder=testfolder,
-                    val.folder=valfolder)
+                    val.folder=valfolder,
+                    dictionary.folder=dictfolder)
 
 rawDataToNgramFreqs(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.twitter.txt",
-                    nbrlines = 1000,
+                    nbrlines = 10000,
                     train.folder=trainfolder,test.folder=testfolder,
-                    val.folder=valfolder)
+                    val.folder=valfolder,
+                    dictionary.folder = dictfolder)
 
 
 source("CreateProbFiles.R")

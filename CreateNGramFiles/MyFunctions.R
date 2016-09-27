@@ -75,6 +75,15 @@ cleanRawImport <- function(data, forprediction=FALSE) {
   data <- gsub("u.s.a.", "united states", data)
   data <- gsub("u.s.", "united states", data)
   
+  s <- Sys.time()
+  
+  #return an entry per sentence
+  data <- unlist(lapply(data, endOfSentence))
+  
+  e <- Sys.time()
+  print('time to parse sentences')
+  print(e-s)
+  
   
   ##remove punctuation excpet dashes or apostrophes
   data <- gsub("[^[:alnum:][:space:]-]", "", data)
@@ -90,13 +99,12 @@ cleanRawImport <- function(data, forprediction=FALSE) {
   #plain text document
   data <- PlainTextDocument(data)$content
   
-  # add leading characters to help predict if beginning of sentence
-  data <- paste("<start> <start> <start> ", data)
+  data <- paste("<start> <start> <start>", data, sep=" ")
   
-  if (forprediction==FALSE){
+#  if (forprediction==FALSE){
     # add end of document characters so we have a full n-gram for every word
-    data <- paste(data, " <end> <end> <end>")
-  }
+#    data <- paste(data, "<end> <end> <end>", sep=" ")
+#  }
 
   data <- stripWhitespace(data)
   
@@ -114,12 +122,18 @@ getCorp <- function(data){
   
 #!!!!!!! try keeping stop words and pronouns???  might be something we want to predict
   #delete pronouns
-#  scorp <- lapply(scorp, delete.stop.words,
+  #scorp <- lapply(scorp, delete.stop.words,
 #                  stop.words = stylo.pronouns(language = "English"))
+ 
+    scorp <- lapply(scorp, delete.stop.words,
+                    stop.words = c("so","also","only","just","but"))
   
+   
   #remove other very common and unhelpful words
 #  scorp <- lapply(scorp, delete.stop.words,
-#                  stop.words = c("the", "a", "an", "and", "but", "it"))
+#                  stop.words = c("a","an","and","are","as","at","be","by","for","from",
+#                                 "has","he","in","is","it","its","of","on","that","the",
+#                                 "to", "was", "were", "will", "with"))
   
   # replace words with very similiar meaning (expand list to other "stop" words)
   
@@ -132,6 +146,28 @@ getCorp <- function(data){
 #  scorp <- lapply(scorp, f)
   
 }
+
+
+endOfSentence <- function(data){
+  library(openNLP)
+  library(NLP)
+  library(stringr)
+  
+  if(length(data)>0){
+    sent_token_annotator <- Maxent_Sent_Token_Annotator(language = "en")
+    a1 <- annotate(data, sent_token_annotator)
+    if (length(a1) > 0) {
+      v <- substring(data,a1$start,a1$end)
+    } else {
+      v <- data
+    }
+  } else {
+    v <- data
+  }
+  
+  v
+}
+
 
 
 
