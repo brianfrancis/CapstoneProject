@@ -32,6 +32,11 @@ appendToDictionary <- function(corp,
   } else
   { 
     nextindex <- 1
+    
+    #add <unk> to the dictionary
+    words <- rbind(words,list("<unk>"))
+    words <- words[order(word)]
+    
     words[,wordID := seq(1, nrow(words))]
     dictionary <- words
   }
@@ -39,6 +44,7 @@ appendToDictionary <- function(corp,
   
   fwrite(dictionary, paste(dict.foldername, dict.filename, sep="/"))
 
+  
   dictionary  
 }
 
@@ -123,6 +129,58 @@ appendToNgram <- function(corp, filename, foldername,
 }
 
 
-replaceFirstWordWithUNK <- function(corp, dictionary){
+replaceFirstWordWithUNK <- function(olddictionary, dictionary,corp){
+  setkey(dictionary,word)
   
+  #check if old dictionary has anything and get new words if so
+  #otherwise everything in the dictionary is new
+  if (nrow(olddictionary) > 0) {
+    setkey(olddictionary,word)
+    x <- olddictionary[dictionary]
+    newwords <- x[is.na(x$wordID)]$word
+  } else {
+    newwords <- dictionary$word
+  }
+  
+  
+  v <- unlist(corp)
+  #get indices to recreate list from big vector
+  f <- rep(1:length(corp),sapply(corp,length))
+  
+  counter <- as.integer(ave(v, v, FUN=seq_along))
+  v[counter==1 & v %in% newwords] <- "<unk>"
+
+  
+  #turn the vector back into a list
+  newCorp <- split(v,f)
+  names(newCorp) <- NULL      
+  
+  newCorp
+}
+
+replaceOOVWords <- function(corp, dictionary) {
+  
+  setkey(dictionary,word)
+  
+  #vector
+  v <-(unlist(corp))
+  #get indices to recreate list from big vector
+  f <- rep(1:length(corp),sapply(corp,length))
+  
+  dt <- data.table(v)
+  setnames(dt,"v","word")
+  #setkey(dt,word)
+  
+  x <- dictionary[dt, on=c(word="word")]
+  
+  x[is.na(x$wordID)]$word <- "<unk>"
+  
+  v <- x$word
+  
+  is.vector(v)
+  
+  newCorp <- split(v,f)
+  names(newCorp) <- NULL
+  
+  newCorp
 }

@@ -75,15 +75,8 @@ cleanRawImport <- function(data, forprediction=FALSE) {
   data <- gsub("u.s.a.", "united states", data)
   data <- gsub("u.s.", "united states", data)
   
-  s <- Sys.time()
-  
   #return an entry per sentence
   data <- unlist(lapply(data, endOfSentence))
-  
-  e <- Sys.time()
-  print('time to parse sentences')
-  print(e-s)
-  
   
   ##remove punctuation excpet dashes or apostrophes
   data <- gsub("[^[:alnum:][:space:]-]", "", data)
@@ -125,6 +118,7 @@ getCorp <- function(data){
   #scorp <- lapply(scorp, delete.stop.words,
 #                  stop.words = stylo.pronouns(language = "English"))
  
+    #????? slightly helpful ?????
     scorp <- lapply(scorp, delete.stop.words,
                     stop.words = c("so","also","only","just","but"))
   

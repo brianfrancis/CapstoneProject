@@ -90,7 +90,7 @@ getAccuracyPerWord <- function(train.folder, test.folder){
 }
 
 
-case <- "case3"
+case <- "case4"
 
 train.folder <- paste(case,"train", sep="/")
 test.folder <- paste(case,"test", sep="/")
@@ -110,5 +110,5 @@ test.folder <- paste(case,"test", sep="/")
   plot(accuracyperword$accuracy ~ log10(accuracyperword$freq))
   sum(accuracyperword$freq*accuracyperword$accuracy)/sum(accuracyperword$freq)
 
-  sub <- accuracyperword[log10(freq)<2.5]
+  sub <- accuracyperword[accuracy>0]
   sum(sub$freq*sub$accuracy)/sum(sub$freq)
