@@ -47,7 +47,7 @@ rawDataToNgramFreqs.Train <- function(rawdata.folder, rawdata.filename,
                                       dictionary.filename="dictionary.csv",
                                       nbrlines = -1L, initial.run=FALSE)
 {
-  
+  library(data.table)
   
   #set the seed
   set.seed(123)
@@ -64,9 +64,7 @@ rawDataToNgramFreqs.Train <- function(rawdata.folder, rawdata.filename,
   dictionary <- data.table()
     
   for (j in 1:8) {
-    
-    print(j)
-    
+
     foldername <- train.folder
     
     rawsub <- rawdata[i==j]
@@ -123,7 +121,7 @@ rawDataToNgramFreqs.Test <- function(rawdata.folder, rawdata.filename,
                                       dictionary.filename="dictionary.csv",
                                       nbrlines = -1L, initial.run=FALSE)
 {
-  
+  library(data.table)  
   
   #set the seed
   set.seed(123)
@@ -151,19 +149,13 @@ rawDataToNgramFreqs.Test <- function(rawdata.folder, rawdata.filename,
     wordCorp <- getCorp(processeddata)
     rm(processeddata)
     
-    print("about to replace")
-    
     dictionary <- fread(paste(dictionary.folder, dictionary.filename, sep="/"))
     
     # what to do if not training data ???
     wordCorp <- replaceOOVWords(wordCorp, dictionary)
     
-    print("replace successful")
-    
     idCorp <- replaceWordsWithIDs(wordCorp, dictionary)
-
-    print("words replaced with id")
-        
+    
     rm(wordCorp)
     gc()
     
@@ -201,20 +193,20 @@ dictfolder <- paste(case,"dictionary", sep="/")
 
 rawDataToNgramFreqs.Train(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.blogs.txt",
-                    nbrlines = 10000,
+                    nbrlines = 100000,
                     initial.run = TRUE,
                     train.folder=trainfolder,
                     dictionary.folder=dictfolder)
 
 rawDataToNgramFreqs.Train(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.news.txt",
-                    nbrlines = 10000,
+                    nbrlines = 100000,
                     train.folder=trainfolder,
                     dictionary.folder=dictfolder)
 
 rawDataToNgramFreqs.Train(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.twitter.txt",
-                    nbrlines = 10000,
+                    nbrlines = 100000,
                     train.folder=trainfolder,
                     dictionary.folder = dictfolder)
 
@@ -225,7 +217,7 @@ createProbFiles(trainfolder)
 
 rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                         rawdata.file = "en_US.blogs.txt",
-                        nbrlines = 10000,
+                        nbrlines = 100000,
                         initial.run = TRUE,
                         test.folder=testfolder,
                         val.folder = valfolder,
@@ -233,7 +225,7 @@ rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Ca
 
 rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                          rawdata.file = "en_US.news.txt",
-                         nbrlines = 10000,
+                         nbrlines = 100000,
                          initial.run = FALSE,
                          test.folder=testfolder,
                          val.folder = valfolder,
@@ -241,7 +233,7 @@ rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Ca
 
 rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                          rawdata.file = "en_US.twitter.txt",
-                         nbrlines = 10000,
+                         nbrlines = 100000,
                          initial.run = FALSE,
                          test.folder=testfolder,
                          val.folder = valfolder,

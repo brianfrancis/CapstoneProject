@@ -119,8 +119,8 @@ getCorp <- function(data){
 #                  stop.words = stylo.pronouns(language = "English"))
  
     #????? slightly helpful ?????
-    scorp <- lapply(scorp, delete.stop.words,
-                    stop.words = c("so","also","only","just","but"))
+#    scorp <- lapply(scorp, delete.stop.words,
+#                    stop.words = c("so","also","only","just","but"))
   
    
   #remove other very common and unhelpful words

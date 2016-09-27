@@ -107,8 +107,17 @@ test.folder <- paste(case,"test", sep="/")
 
 
   accuracyperword <- getAccuracyPerWord(train.folder=train.folder, test.folder=test.folder)
+  setkey(accuracyperword,prediction)
+  
+  dictionary <- fread(paste(case,"dictionary/dictionary.csv", sep="/"))
+  setkey(dictionary,wordID)
+  
+  accuracyperword <- dictionary[accuracyperword]
+  
   plot(accuracyperword$accuracy ~ log10(accuracyperword$freq))
   sum(accuracyperword$freq*accuracyperword$accuracy)/sum(accuracyperword$freq)
 
   sub <- accuracyperword[accuracy>0]
   sum(sub$freq*sub$accuracy)/sum(sub$freq)
+  
+  
