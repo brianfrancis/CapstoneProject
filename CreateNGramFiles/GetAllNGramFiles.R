@@ -69,10 +69,18 @@ rawDataToNgramFreqs.Train <- function(rawdata.folder, rawdata.filename,
     
     rawsub <- rawdata[i==j]
     
+    s <- Sys.time()
     processeddata <- cleanRawImport(rawsub)
+    e <- Sys.time()
+    print(paste(e-s,"Time to process raw data", sep=" "))
+    
     rm(rawsub)
     
+    s <- Sys.time()
     wordCorp <- getCorp(processeddata)
+    e <- Sys.time()
+    print(paste(e-s,"Time to get corp", sep=" "))
+    
     rm(processeddata)
     
     
@@ -196,7 +204,7 @@ trainfolder <- paste(case,"train", sep="/")
 testfolder <- paste(case,"test", sep="/")
 valfolder <- paste(case,"validation", sep="/")
 dictfolder <- paste(case,"dictionary", sep="/")
-nbr_rows <- 100000
+nbr_rows <- 1000
 
 rawDataToNgramFreqs.Train(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.blogs.txt",

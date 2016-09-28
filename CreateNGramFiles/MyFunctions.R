@@ -114,6 +114,10 @@ getCorp <- function(data){
   library(stylo)
   
   scorp <- lapply(data, txt.to.words, splitting.rule="[[:space:]]")
+
+  profanitypath <- "C:/Users/bfrancis/Desktop/Coursera/Capstone/profanity.txt"
+  scorp <- replaceWords(wordListPath = profanitypath, newvalue = "<profanity>",
+                        corp = scorp)  
   
 #!!!!!!! try keeping stop words and pronouns???  might be something we want to predict
   #delete pronouns
@@ -154,6 +158,24 @@ endOfSentence <- function(data){
   data <- as.String(data)
   a1 <- annotate(data, sent_token_annotator)
   data[a1]
+}
+
+replaceWords <- function(wordListPath, newvalue, corp){
+  library(data.table)  
+  
+  replaceWords <- unlist(read.table(wordListPath,header=TRUE, stringsAsFactors = FALSE))
+    
+  v <- unlist(corp)
+  #get indices to recreate list from big vector
+  f <- rep(1:length(corp),sapply(corp,length))
+  
+  v[v %in% replaceWords] <- newvalue
+    
+  #turn the vector back into a list
+  newCorp <- split(v,f)
+  names(newCorp) <- NULL      
+    
+  newCorp
 }
 
 
