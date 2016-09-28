@@ -75,9 +75,11 @@ cleanRawImport <- function(data, forprediction=FALSE) {
   data <- gsub("u.s.a.", "united states", data)
   data <- gsub("u.s.", "united states", data)
   
+
   #return an entry per sentence
-  data <- unlist(lapply(data, endOfSentence))
-  
+  #data <- unlist(lapply(data, endOfSentence))
+  data <- endOfSentence(data)
+
   ##remove punctuation excpet dashes or apostrophes
   data <- gsub("[^[:alnum:][:space:]-]", "", data)
   
@@ -147,19 +149,11 @@ endOfSentence <- function(data){
   library(NLP)
   library(stringr)
   
-  if(length(data)>0){
-    sent_token_annotator <- Maxent_Sent_Token_Annotator(language = "en")
-    a1 <- annotate(data, sent_token_annotator)
-    if (length(a1) > 0) {
-      v <- substring(data,a1$start,a1$end)
-    } else {
-      v <- data
-    }
-  } else {
-    v <- data
-  }
   
-  v
+  sent_token_annotator <- Maxent_Sent_Token_Annotator(language = "en")
+  data <- as.String(data)
+  a1 <- annotate(data, sent_token_annotator)
+  data[a1]
 }
 
 

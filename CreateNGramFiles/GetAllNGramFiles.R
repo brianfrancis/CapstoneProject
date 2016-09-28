@@ -88,10 +88,16 @@ rawDataToNgramFreqs.Train <- function(rawdata.folder, rawdata.filename,
     dictionary <- appendToDictionary(wordCorp, dictionary.filename, 
                                      dictionary.folder, initialfile)
     
-    
+    s <- Sys.time()
     wordCorp <- replaceFirstWordWithUNK(olddictionary,dictionary,wordCorp)
+    e <- Sys.time()
+    print(paste(e-s,"Time to repalce UNK", sep=" "))
     
+    s <- Sys.time()
     idCorp <- replaceWordsWithIDs(wordCorp, dictionary)
+    e <- Sys.time()
+    print(paste(e-s,"Time to repalce words with IDs", sep=" "))
+    
     rm(wordCorp)
     gc()
     
@@ -184,29 +190,30 @@ rawDataToNgramFreqs.Test <- function(rawdata.folder, rawdata.filename,
 
 setwd("C:/Users/bfrancis/Desktop/Coursera/Capstone/CapstoneProject/CreateNGramFiles")
 
-case <- "case4"
+case <- "all"
 
 trainfolder <- paste(case,"train", sep="/")
 testfolder <- paste(case,"test", sep="/")
 valfolder <- paste(case,"validation", sep="/")
 dictfolder <- paste(case,"dictionary", sep="/")
+nbr_rows <- 100000
 
 rawDataToNgramFreqs.Train(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.blogs.txt",
-                    nbrlines = 100000,
+                    nbrlines = nbr_rows,
                     initial.run = TRUE,
                     train.folder=trainfolder,
                     dictionary.folder=dictfolder)
 
 rawDataToNgramFreqs.Train(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.news.txt",
-                    nbrlines = 100000,
+                    nbrlines = nbr_rows,
                     train.folder=trainfolder,
                     dictionary.folder=dictfolder)
 
 rawDataToNgramFreqs.Train(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.twitter.txt",
-                    nbrlines = 100000,
+                    nbrlines = nbr_rows,
                     train.folder=trainfolder,
                     dictionary.folder = dictfolder)
 
@@ -217,7 +224,7 @@ createProbFiles(trainfolder)
 
 rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                         rawdata.file = "en_US.blogs.txt",
-                        nbrlines = 100000,
+                        nbrlines = nbr_rows,
                         initial.run = TRUE,
                         test.folder=testfolder,
                         val.folder = valfolder,
@@ -225,7 +232,7 @@ rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Ca
 
 rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                          rawdata.file = "en_US.news.txt",
-                         nbrlines = 100000,
+                         nbrlines = nbr_rows,
                          initial.run = FALSE,
                          test.folder=testfolder,
                          val.folder = valfolder,
@@ -233,7 +240,7 @@ rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Ca
 
 rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                          rawdata.file = "en_US.twitter.txt",
-                         nbrlines = 100000,
+                         nbrlines = nbr_rows,
                          initial.run = FALSE,
                          test.folder=testfolder,
                          val.folder = valfolder,
