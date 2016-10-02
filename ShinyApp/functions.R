@@ -134,15 +134,20 @@ predictNextWordKN <- function(input) {
   p2 <- data.table()
   p3 <- data.table()
   p4 <- data.table()
-  
-    
-  if (l == 3) {
 
-    p1 <- fourgram.dt[cond1==x[(length(x)-2)] & cond2==x[(length(x)-1)] & cond3==x[length(x)] ,
-                      .(prediction, p)]
+print(l)
+  if (l >= 3) {
+       idx <- idx <- ffwhich(fourgram.ff, cond1==x[(length(x)-2)] 
+                             & cond2==x[(length(x)-1)] 
+                             & cond3==x[length(x)])
+       p1 <- as.data.table(fourgram.ff[idx,][c("prediction","p")])
+
+
+     #p1 <- fourgram.dt[cond1==x[(length(x)-2)] & cond2==x[(length(x)-1)] & cond3==x[length(x)] ,
+    #                   .(prediction, p)]
   }
   if (l >= 2) {
-    
+
     p2 <- threegram.dt[cond1==x[(length(x)-1)] & cond2==x[length(x)],
                        .(prediction, p)]
   }
@@ -151,47 +156,57 @@ predictNextWordKN <- function(input) {
                      .(prediction, p)]
   }
   p4 <- onegram.dt[,.(prediction, p)]
-  
-  allp <- data.table()   
-  
+
+  allp <- data.table()
+
   #backoff in case our condition doesn't exist in higher order n-gram
   if (nrow(p1) > 0) {
     p1[,ngramlevel := 4]
     allp <- p1
-    
-  } 
+
+  }
   if (nrow(p2) > 0) {
     p2[,ngramlevel := 3]
     allp <- rbind(allp,p2)
-    
-  } 
+
+  }
   if (nrow(p3) > 0) {
     p3[,ngramlevel := 2]
     allp <- rbind(allp,p3)
-  } 
+  }
   p4[,ngramlevel := 1]
   allp <- rbind(allp,p4)
   allp <- data.table(allp)
-  
+
   #setkey(allp, "ngramlevel", "p")
   #allp[,maxngramlevel:= max(ngramlevel), by=prediction]
   #allp <- allp[ngramlevel==maxngramlevel,]
+  #
+  # allp <- allgram.dt[(cond3==x[(length(x)-2)] & cond2==x[(length(x)-1)]
+  #                    & cond1==x[length(x)] & ngramlevel==4) |
+  #                      (cond2==x[(length(x)-1)]
+  #                        & cond1==x[length(x)] & ngramlevel==3) |
+  #                      (cond1==x[length(x)] & ngramlevel==2) |
+  #                      (ngramlevel==1)
+  #                      ,.(prediction, p, ngramlevel)]
+
+  
   allp <- allp[order(-ngramlevel,-p)]
   
   e <- Sys.time()
   print("done")
   print (e-s)
   
-  
-  predictions <- unique(allp$prediction)
-  
-  predictions <- replaceIDsWithWords(predictions, dictionary)
-  
-  if (nchar(partial)>0){
-    predictions <- predictions[grepl(partial, predictions)]
-  }
-  
-  predictions
+  allp
+  # predictions <- unique(allp$prediction)
+  # 
+  # predictions <- replaceIDsWithWords(predictions, dictionary)
+  # 
+  # if (nchar(partial)>0){
+  #   predictions <- predictions[grepl(partial, predictions)]
+  # }
+  # 
+  # predictions
 }
 
 #trim whitespace

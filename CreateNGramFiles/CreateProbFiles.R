@@ -237,3 +237,32 @@ smoothP <- function(x1, x2,  x3 ,x4, discount=.75){
   (pmax((x1 - discount),0)/x2) + (((discount/x2)*x3) *x4)
   
 }
+
+mergeProbFiles <- function(folder){
+  onegram <- fread(paste(folder,"onegram.prob.csv", sep="/"))
+  onegram[,freq:=NULL]
+  onegram[,ngramlevel:=1]
+  onegram[,cond1:=NA]
+  onegram[,cond2:=NA]
+  onegram[,cond3:=NA]
+  setcolorder(onegram, c("cond3", "cond2", "cond1", "prediction", "p", "ngramlevel"))
+  
+  twogram <- fread(paste(folder,"twogram.prob.csv", sep="/"))
+  twogram[,ngramlevel:=2]
+  twogram[,cond2:=NA]
+  twogram[,cond3:=NA]
+  setcolorder(twogram, c("cond3", "cond2", "cond1", "prediction", "p", "ngramlevel"))
+  
+  threegram <- fread(paste(folder,"threegram.prob.csv", sep="/"))
+  threegram[,ngramlevel:=3]
+  names(threegram) <- c("cond2","cond1","prediction", "p", "ngramlevel")
+  threegram[,cond3:=NA]
+  setcolorder(threegram, c("cond3", "cond2", "cond1", "prediction", "p", "ngramlevel"))
+  
+  fourgram <- fread(paste(folder,"fourgram.prob.csv", sep="/"))
+  fourgram[,ngramlevel:=4]
+  names(fourgram) <- c("cond3","cond2","cond1","prediction", "p", "ngramlevel")
+  
+  all <- rbind(fourgram,threegram,twogram,onegram)
+  fwrite(all,paste(folder,"all.prob.csv", sep="/"))
+}

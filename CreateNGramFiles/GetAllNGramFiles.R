@@ -59,12 +59,13 @@ rawDataToNgramFreqs.Train <- function(rawdata.folder, rawdata.filename,
   con <- file(paste(rawdata.folder,rawdata.filename,sep="/"), "rb", encoding="UTF-8")
   rawdata <- readLines(con, n=nbrlines)
   close(con)
-  i <-  sample(rep(1:10),size=length(rawdata), replace=TRUE)
+  i <-  sample(rep(1:100),size=length(rawdata), replace=TRUE)
   
   dictionary <- data.table()
     
-  for (j in 1:8) {
-
+  for (j in 1:80) {
+    print(j)
+      
     foldername <- train.folder
     
     rawsub <- rawdata[i==j]
@@ -147,13 +148,13 @@ rawDataToNgramFreqs.Test <- function(rawdata.folder, rawdata.filename,
   con <- file(paste(rawdata.folder,rawdata.filename,sep="/"), "rb", encoding="UTF-8")
   rawdata <- readLines(con, n=nbrlines)
   close(con)
-  i <-  sample(rep(1:10),size=length(rawdata), replace=TRUE)
+  i <-  sample(rep(1:100),size=length(rawdata), replace=TRUE)
   
   dictionary <- data.table()
   
-  for (j in 9:10) {
+  for (j in 81:100) {
     
-    if (j==9) foldername <- test.folder else foldername <- val.folder
+    if (j<90) foldername <- test.folder else foldername <- val.folder
     
     rawsub <- rawdata[i==j]
     
@@ -204,7 +205,7 @@ trainfolder <- paste(case,"train", sep="/")
 testfolder <- paste(case,"test", sep="/")
 valfolder <- paste(case,"validation", sep="/")
 dictfolder <- paste(case,"dictionary", sep="/")
-nbr_rows <- 1000
+nbr_rows <- -1L
 
 rawDataToNgramFreqs.Train(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.file = "en_US.blogs.txt",
