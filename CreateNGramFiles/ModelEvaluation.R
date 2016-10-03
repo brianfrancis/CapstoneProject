@@ -29,6 +29,10 @@ getPerplexity <- function(train.folder, test.folder, train.filename, test.filena
 }
 
 getAccuracyPerWord <- function(train.folder, test.folder){
+  
+  ## don't predict start or unk ???
+  
+  
   library (data.table)
 
   s <- Sys.time()
@@ -38,70 +42,92 @@ getAccuracyPerWord <- function(train.folder, test.folder){
   train.onegram.dt <- train.onegram.dt[1:3,]
   train.onegram.dt[,n:=.N]
   train.onegram.dt[,rank:=cumsum(n)/n]
+  setkey(train.onegram.dt,prediction)
   
   train.twogram.dt <- fread(paste(train.folder,"twogram.prob.csv", sep="/"))
   train.twogram.dt[,ngramlevel:=2]
   setkeyv(train.twogram.dt, c("cond1","p"))
   train.twogram.dt <- train.twogram.dt[,tail(.SD, 3),by=.(cond1)] 
-  #train.twogram.dt[,n:=.N,by=.(cond1)]
-  #train.twogram.dt <- train.twogram.dt[order(cond1,-p)]
-  #train.twogram.dt[,rank:=cumsum(n)/n,by=.(cond1)]
-  twogramcount <- train.twogram.dt[,.N,by=c("cond1")]
-  setnames(twogramcount,"N","twocount")
-  
-  #train.threegram.dt <- fread(paste(train.folder,"threegram.prob.csv", sep="/"))
-  train.threegram.dt <- fread(paste(train.folder,"threegram.trimmed.csv", sep="/"))
+  train.twogram.dt[,n:=.N,by=.(cond1)]
+  train.twogram.dt <- train.twogram.dt[order(cond1,-p)]
+  train.twogram.dt[,rank:=cumsum(n)/n,by=.(cond1)]
+
+  train.threegram.dt <- fread(paste(train.folder,"threegram.prob.csv", sep="/"))
+  #train.threegram.dt <- fread(paste(train.folder,"threegram.trimmed.csv", sep="/"))
   train.threegram.dt <- train.threegram.dt[,.(cond1,cond2,prediction,p)]
   train.threegram.dt[,ngramlevel:=3]
   setkeyv(train.threegram.dt, c("cond1","cond2", "p"))
   train.threegram.dt <- train.threegram.dt[,tail(.SD, 3),by=.(cond1, cond2)] 
-  #train.threegram.dt[,n:=.N,by=.(cond1, cond2)]
-  #train.threegram.dt <- train.threegram.dt[order(cond1,cond2,-p)]
-  #train.threegram.dt[,rank:=cumsum(n)/n,by=.(cond1,cond2)]
-  threegramcount <- train.threegram.dt[,.N,by=c("cond1", "cond2")]
-  setnames(threegramcount,"N","threecount")
-  
-  train.fourgram.dt <- fread(paste(train.folder,"fourgram.trimmed.csv", sep="/"))
-  #train.fourgram.dt <- fread(paste(train.folder,"fourgram.prob.csv", sep="/"))
+  train.threegram.dt[,n:=.N,by=.(cond1, cond2)]
+  train.threegram.dt <- train.threegram.dt[order(cond1,cond2,-p)]
+  train.threegram.dt[,rank:=cumsum(n)/n,by=.(cond1,cond2)]
+
+  #train.fourgram.dt <- fread(paste(train.folder,"fourgram.trimmed.csv", sep="/"))
+  train.fourgram.dt <- fread(paste(train.folder,"fourgram.prob.csv", sep="/"))
   train.fourgram.dt <- train.fourgram.dt[,.(cond1,cond2,cond3,prediction,p)]
   train.fourgram.dt[,ngramlevel:=4]
   setkeyv(train.fourgram.dt, c("cond1","cond2", "cond3","p"))
   train.fourgram.dt <- train.fourgram.dt[,tail(.SD, 3),by=.(cond1, cond2,cond3)]
- 
-  fourgramcount <- train.fourgram.dt[,.N,by=c("cond1", "cond2","cond3")]
-  setnames(fourgramcount,"N","fourcount")
+  train.fourgram.dt[,n:=.N,by=.(cond1, cond2,cond3)]
+  train.fourgram.dt <- train.fourgram.dt[order(cond1,cond2,cond3,-p)]
+  train.fourgram.dt[,rank:=cumsum(n)/n,by=.(cond1,cond2,cond3)]
   
-#  train.fourgram.dt <- train.fourgram.dt[order(cond1,cond2,cond3,-p)]
-#  train.fourgram.dt[,rank:=cumsum(n)/n,by=.(cond1,cond2,cond3)]
-  setkey(train.fourgram.dt,cond1,cond2,cond3,prediction)
   #train.fourgram.dt[,prank:=rank(-p,ties.method="first"), by=.(cond1, cond2,cond3)]
   #train.fourgram.dt <- train.fourgram.dt[prank<=3,]
   
   test.dt <- fread(paste(test.folder,"fourgramfreq.csv", sep="/"))
-  setkeyv(test.dt, c("cond1","cond2", "cond3", "prediction"))
+  setnames(test.dt,"prediction","actual")
+  setnames(test.dt,"cond1","actual.cond1")
+  setnames(test.dt,"cond2","actual.cond2")
+  setnames(test.dt,"cond3","actual.cond3")
+  setkey(test.dt,actual.cond1,actual.cond2,actual.cond3)
+  
+    
   
   e <- Sys.time()
   print(e-s)
   print("Time to get data")
   
   s <- Sys.time()
-
-  test.dt <- 
   
+  match.four <- train.fourgram.dt[test.dt,.(actual.cond1,actual.cond2,actual.cond3, actual,
+                                              .N,sum(rank*(actual==prediction))), 
+                                    on=c(cond1="actual.cond1",cond2="actual.cond2",cond3="actual.cond3"), 
+                                    by=.EACHI]
   
-  four <- merge(test.dt,train.fourgram.dt,all.x=TRUE)
- 
-  three <- test.dt[train.threegram.dt, on=c(cond2 = "cond1", 
-                                            cond3="cond2",
-                                            prediction="prediction"),
-                   nomatch=0]
+  setnames(match.four,"V6","matchrank")
+  match.four[is.na(matchrank)]$matchrank <- 0
+  match.four[,c("cond1","cond2","cond3"):=NULL]
+  match.four[,ngramlevel:=4]
   
-  two <- test.dt[train.twogram.dt, on=c(cond3 = "cond1", prediction="prediction"),
-               nomatch=0]
+  match.three <- train.threegram.dt[test.dt,.(actual.cond1,actual.cond2,actual.cond3, actual,
+                                              .N,sum(rank*(actual==prediction))), 
+                                    on=c(cond1="actual.cond2",cond2="actual.cond3"), 
+                                    by=.EACHI]
+  setnames(match.three,"V6","matchrank")
+  match.three[is.na(matchrank)]$matchrank <- 0
+  match.three[,c("cond1","cond2"):=NULL]
+  match.three[,ngramlevel:=3]
   
-  one <- test.dt[train.onegram.dt, on=c(prediction = "prediction"),
-                 nomatch=0]
+  match.two <- train.twogram.dt[test.dt,.(actual.cond1,actual.cond2,actual.cond3, actual,
+                                              .N,sum(rank*(actual==prediction))), 
+                                    on=c(cond1="actual.cond3"), 
+                                    by=.EACHI]
+  setnames(match.two,"V6","matchrank")
+  match.two[is.na(matchrank)]$matchrank <- 0
+  match.two[,c("cond1"):=NULL]
+  match.two[,ngramlevel:=2]
   
+  match.one <- train.onegram.dt[test.dt,.(actual.cond1,actual.cond2,actual.cond3, actual,
+                                          n,rank), 
+                                by=.EACHI, on=c(prediction="actual")]
+  
+  match.one[is.na(n)]$n <- 3
+  match.one[is.na(rank)]$rank <- 0
+  match.one[,prediction:=NULL]
+  match.one[,ngramlevel:=1]
+  setnames(match.one,"rank","matchrank")
+  setnames(match.one,"n","N")
   
   e <- Sys.time()
   print(e-s)
@@ -109,51 +135,19 @@ getAccuracyPerWord <- function(train.folder, test.folder){
   
   s <- Sys.time()
   
-  # two[,prank:=NULL]
-  # three[,prank:=NULL]
-  # four[,prank:=NULL]
+  all <- rbind(match.four,match.three,match.two,match.one)
+  all <- all[order(actual.cond1,actual.cond2,actual.cond3,actual,-ngramlevel)]
+  all[,levelrank:=(as.logical(matchrank)*(cumsum(N)-N)+matchrank),by=c("actual.cond1","actual.cond2","actual.cond3","actual")]
+  all[levelrank==0]$levelrank <- 100
   
-  all <- rbind(four,three,two,one)
-  all <- all[order(cond1,cond2,cond3,prediction,-ngramlevel,rank)]
-  setkey(all,cond1,cond2,cond3,prediction)
-  all <- all[,.(cond1,cond2,cond3,prediction)]
-  all <- unique(all)
-  all[,match:=TRUE]
-  #all <- rbind(one)
+  all <- all[,min(levelrank),by=c("actual.cond1","actual.cond2","actual.cond3","actual")]
+  setnames(all,"V1","finalrank")
+  setkey(all,actual.cond1,actual.cond2,actual.cond3,actual)
+  setkey(test.dt,actual.cond1,actual.cond2,actual.cond3,actual)
+  all <- all[test.dt]
   
-  #setkey(all,cond1,cond2,cond3, prediction, ngramlevel,p)
+  print(sum((all$finalrank<=3)*all$freq)/sum(all$freq))
   
-  #topthree <- all[,tail(.SD, 3), by=.(cond1, cond2,cond3, prediction)]
-  
-  e <- Sys.time()
-  print(e-s)
-  print("all top three")
-  
-  s <- Sys.time()
-
-  x <- all[test.dt]
-  x[is.na(match)]$match <- FALSE
-
-  sum(x$match*x$freq)/sum(x$freq)
-  
-#  topthree[,match:=as.integer(prediction==i.prediction)]
-  
-#  topthree[,c("i.prediction","p","ngramlevel"):=NULL]
-  
-  #??
-  # x <- topthree[,as.logical(sum(match)),by=.(cond1,cond2,cond3,prediction, freq)]
-  # setnames(x,"V1","match")
-   accuracyperword <- x[,.(sum(freq),sum(freq*match)/sum(freq)), by=prediction]
-   setnames(accuracyperword,"V1","freq")
-   setnames(accuracyperword,"V2","accuracy")
-  
-  
-  e <- Sys.time()
-  print(e-s)
-  print("final processing")
-  
-  
-  accuracyperword 
 }
 
 
