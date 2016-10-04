@@ -39,5 +39,5 @@ saveRDS(twogram.dt,"twogram.rds")
 saveRDS(onegram.dt,"onegram.rds")
 saveRDS(dictionary.by.id,"dictionary.by.id.rds")
 saveRDS(dictionary.by.word,"dictionary.by.word.rds")
-saveRDS(profanity,"profanity")
+saveRDS(profanity,"profanity.rds")
 

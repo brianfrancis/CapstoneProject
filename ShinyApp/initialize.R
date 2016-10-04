@@ -16,5 +16,5 @@ twogram.dt <- readRDS("twogram.rds")
 onegram.dt <- readRDS("onegram.rds")
 dictionary.by.id <- readRDS("dictionary.by.id.rds")
 dictionary.by.word <- readRDS("dictionary.by.word.rds")
-profanity <- readRDS("profanity")
+profanity <- readRDS("profanity.rds")
 
