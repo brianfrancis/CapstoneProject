@@ -45,7 +45,7 @@ pruneNgram <- function(path, fourpercent =.25, threepercent = .25) {
   rm(threegram.freq)
 
   
-  fourgram <- fourgram[order(1/freq)] 
+  fourgram <- fourgram[order(1/(p*freq))] 
   fourgram <- head(fourgram,nrow(fourgram)*fourpercent)
   
   setkey(fourgram,cond1,cond2,cond3)
@@ -58,7 +58,7 @@ pruneNgram <- function(path, fourpercent =.25, threepercent = .25) {
              by.x=c('cond1','cond2','prediction'), 
              by.y=c('cond1','cond2', 'cond3'), all.x=TRUE)
   
-  threegram <- threegram[order(1/freq)] 
+  threegram <- threegram[order(1/(p*freq))] 
   
   threegram.keep <- head(threegram[is.na(N)],
                          nrow(threegram[is.na(N)])*threepercent)

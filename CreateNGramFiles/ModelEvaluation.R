@@ -169,10 +169,11 @@ getAccuracyPerWord <- function(train.folder, test.folder, dictionary.folder){
 }
 
 
-case <- "case4"
+case <- "all"
 
 train.folder <- paste(case,"train", sep="/")
 test.folder <- paste(case,"test", sep="/")
+dictionary.folder <- paste(case,"dictionary", sep="/")
 
 
   getPerplexity(train.folder=train.folder, test.folder=test.folder, train.filename = "twogram.prob.csv", 
@@ -185,23 +186,24 @@ test.folder <- paste(case,"test", sep="/")
               test.filename = "fourgramfreq.csv", key=c("cond1","cond2", "cond3", "prediction"))
 
 
-  accuracyperword <- getAccuracyPerWord(train.folder=train.folder, test.folder=test.folder)
-  sum(accuracyperword$freq*accuracyperword$accuracy)/sum(accuracyperword$freq)
-  
-  setkey(accuracyperword,prediction)
-  
-  dictionary <- fread(paste(case,"dictionary/dictionary.csv", sep="/"))
-  setkey(dictionary,wordID)
-  
-  accuracyperword <- dictionary[accuracyperword]
-  
-  plot(accuracyperword$accuracy ~ log10(accuracyperword$freq))
-  
-
-  sub <- accuracyperword[accuracy>0]
-  sum(sub$freq*sub$accuracy)/sum(sub$freq)
+  getAccuracyPerWord(train.folder=train.folder, test.folder=test.folder,
+                     dictionary.folder = dictionary.folder)
   
   
-x <-  getPerplexity(train.folder=train.folder, test.folder=train.folder, train.filename = "fourgram.prob.csv", 
-                test.filename = "fourgramfreq.csv", key=c("cond1","cond2", "cond3", "prediction"))
-  
+#   setkey(accuracyperword,prediction)
+#   
+#   dictionary <- fread(paste(case,"dictionary/dictionary.csv", sep="/"))
+#   setkey(dictionary,wordID)
+#   
+#   accuracyperword <- dictionary[accuracyperword]
+#   
+#   plot(accuracyperword$accuracy ~ log10(accuracyperword$freq))
+#   
+# 
+#   sub <- accuracyperword[accuracy>0]
+#   sum(sub$freq*sub$accuracy)/sum(sub$freq)
+#   
+#   
+# x <-  getPerplexity(train.folder=train.folder, test.folder=train.folder, train.filename = "fourgram.prob.csv", 
+#                 test.filename = "fourgramfreq.csv", key=c("cond1","cond2", "cond3", "prediction"))
+#   

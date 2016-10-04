@@ -21,7 +21,8 @@ shinyServer(
     
     updatePredictionOptions <- function() {
       output$prediction1 <- renderUI({
-        actionButton("inputPrediction1", label = values$predictions[1])
+        actionButton("inputPrediction1", label = values$predictions[1],
+                     width="400px")
       })
       
       output$prediction2 <- renderUI({
@@ -30,7 +31,7 @@ shinyServer(
       
       output$prediction3 <- renderUI({
         actionButton("inputPrediction3", label = values$predictions[3])
-      })
+      }
     }
     
     predictionSelected <- function(value) {
@@ -60,12 +61,6 @@ shinyServer(
     
     #set the initial button values for the predictions
     updatePredictionOptions()
-    
-     ##when the selected line target changes, update the list of controls that can be selected
-    observeEvent(input$recalculate, {
-        recalculateNextWords(input$ngram)
-      })
-    
     
     observeEvent(input$inputPrediction1, {
       predictionSelected(values$predictions[1])
