@@ -89,16 +89,17 @@ cleanRawImport <- function(data) {
 ##get a coprus from the data
 getCorp <- function(data){
   library(stylo)
-
+  
   corp <- txt.to.words(data, splitting.rule="[[:space:]]")
  
   corp <- replaceWords(profanity, newvalue = "<profanity>",
                        corp = corp)  
-  #replace out of vocabulary words with unk
-  corp <- replaceOOVWords(corp,dictionary)
+ 
+   #replace out of vocabulary words with unk
+  corp <- replaceOOVWords(corp)
   
   #replace words with word IDs
-  corp <- replaceWordsWithIDs(corp, dictionary)
+  corp <- replaceWordsWithIDs(corp)
   
   corp
   
@@ -133,44 +134,38 @@ replaceWords <- function(replaceWords, newvalue, corp){
 
 
 #replace actual words with IDs
-replaceWordsWithIDs <- function(v, dictionary){
+replaceWordsWithIDs <- function(v, dictionary=dictionary.by.word){
   
   dt <- data.table(word=v)
-  
-  setkey(dictionary,word)
   
   dictionary[dt,on=c(word="word")]$wordID
   
 }
 
 #replace word IDs with actual words
-replaceIDsWithWords <- function(v, dictionary){
+replaceIDsWithWords <- function(v, dictionary=dictionary.by.id){
  
   dt <- data.table(wordID=v)
-  
-  setkey(dictionary,wordID)
 
   dictionary[dt,on=c(wordID="wordID")]$word
   
 }
 
 #replace out of vocabulary words with UNK
-replaceOOVWords <- function(corp, dictionary) {
-  
-  setkey(dictionary,word)
-  
+replaceOOVWords <- function(corp, d=dictionary.by.word) {
   #vector
   v <- corp
-  
+
   dt <- data.table(v)
   setnames(dt,"v","word")
   
-  x <- dictionary[dt, on=c(word="word")]
-  
+  x <- d[dt, on=c(word="word")]
+
   x[is.na(x$wordID)]$word <- "<unk>"
   
   newCorp <- x$word
   names(newCorp) <- NULL
+  
   
   newCorp
 }

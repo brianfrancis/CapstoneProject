@@ -2,9 +2,10 @@ source("DataCleaning.R")
 
 #clean input and return bag of words
 cleanInput <- function (input){
+  
   #take off anything not followed by a space (part of the prediction not the lookup)
-
   clean <- cleanRawImport(input)
+  
   
   partial <- getPartial(clean)
   clean <- substr(clean, 1, nchar(clean) - nchar(partial))
@@ -38,13 +39,6 @@ predictNextWordKN <- function(input) {
   ##need to remove the last part of the phrase if there is a space ???
   x <- cleanInput(input)
   
-
-  e <- Sys.time()
-  print("clean")
-  print (e-s)
-  
-  s <- Sys.time()
-  
   
   l <- length(x)
   ##just keep the last maxngram - 1 words
@@ -57,32 +51,62 @@ predictNextWordKN <- function(input) {
   p3 <- data.table()
   p4 <- data.table()
 
+  if (length(x) >=3) {kminus3 <- x[(length(x)-2)]}
+  if (length(x) >=2) {kminus2 <- x[(length(x)-1)]}
+  kminus1 <- x[length(x)]
   
-  s <- Sys.time()
-
-  if (l >= 3) {
-     p1 <- fourgram.dt[cond1==x[(length(x)-2)] & cond2==x[(length(x)-1)] & cond3==x[length(x)] ,
-                       .(prediction, p)]
-  }
-  if (l >= 2) {
-
-    p2 <- threegram.dt[cond1==x[(length(x)-1)] & cond2==x[length(x)],
-                       .(prediction, p)]
-  }
-  if (l >= 1) {
-    p3 <- twogram.dt[cond1==x[length(x)],
-                     .(prediction, p)]
-  }
-  p4 <- onegram.dt[,.(prediction, p)]
-
-  allp <- data.table()
-
   e <- Sys.time()
-  print("lookup")
+  print("initial")
   print (e-s)
   
   s <- Sys.time()
   
+  
+  if (l >= 3) {
+     p1 <- fourgram.dt[cond1==kminus3 
+                       & cond2==kminus2
+                       & cond3==kminus1,
+                       .(prediction, p)]
+    
+  }
+  
+  e <- Sys.time()
+  print("p1")
+  print (e-s)
+  
+  s <- Sys.time()
+  
+  
+  if (l >= 2) {
+
+    p2 <- threegram.dt[cond1==kminus2 
+                       & cond2==kminus1,
+                       .(prediction, p)]
+  }
+  
+  e <- Sys.time()
+  print("p2")
+  print (e-s)
+  
+  s <- Sys.time()
+  
+  
+  if (l >= 1) {
+  
+    p3 <- twogram.dt[cond1==kminus1,
+                     .(prediction, p)]
+  }
+
+  e <- Sys.time()
+  print("p3")
+  print (e-s)
+  
+  s <- Sys.time()
+  
+  
+  p4 <- onegram.dt[,.(prediction, p)]
+
+  allp <- data.table()
   
   #backoff in case our condition doesn't exist in higher order n-gram
   if (nrow(p1) > 0) {
@@ -111,16 +135,14 @@ predictNextWordKN <- function(input) {
   
   s <- Sys.time()
   
-  
-  
   predictions <- unique(allp$prediction)
-
-  predictions <- replaceIDsWithWords(predictions, dictionary)
-
+  predictions <- replaceIDsWithWords(predictions)
+  
    if (nchar(partial)>0){
      predictions <- predictions[grepl(partial, predictions)]
    }
-
+  
+  
   e <- Sys.time()
   print("done")
   print (e-s)
