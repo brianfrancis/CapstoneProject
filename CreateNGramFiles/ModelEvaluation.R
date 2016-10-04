@@ -28,7 +28,7 @@ getPerplexity <- function(train.folder, test.folder, train.filename, test.filena
 
 }
 
-getAccuracyPerWord <- function(train.folder, test.folder){
+getAccuracyPerWord <- function(train.folder, test.folder, dictionary.folder){
   
   ## don't predict start or unk ???
   
@@ -36,7 +36,13 @@ getAccuracyPerWord <- function(train.folder, test.folder){
   library (data.table)
 
   s <- Sys.time()
+  
+  dictionary <- fread(paste(dictionary.folder,"dictionary.csv", sep="/"))
+  
+  removeIDs <- dictionary[word %in% c("<start>", "<unk>", "<profanity>")]$wordID
+  
   train.onegram.dt <- fread(paste(train.folder,"onegram.prob.csv", sep="/"))
+  train.onegram.dt <- train.onegram.dt[!prediction %in% removeIDs]
   train.onegram.dt[,ngramlevel:=1]
   train.onegram.dt <- train.onegram.dt[order(-p)]
   train.onegram.dt <- train.onegram.dt[1:3,]
@@ -45,6 +51,7 @@ getAccuracyPerWord <- function(train.folder, test.folder){
   setkey(train.onegram.dt,prediction)
   
   train.twogram.dt <- fread(paste(train.folder,"twogram.prob.csv", sep="/"))
+  train.twogram.dt <- train.twogram.dt[!prediction %in% removeIDs]
   train.twogram.dt[,ngramlevel:=2]
   setkeyv(train.twogram.dt, c("cond1","p"))
   train.twogram.dt <- train.twogram.dt[,tail(.SD, 3),by=.(cond1)] 
@@ -52,9 +59,10 @@ getAccuracyPerWord <- function(train.folder, test.folder){
   train.twogram.dt <- train.twogram.dt[order(cond1,-p)]
   train.twogram.dt[,rank:=cumsum(n)/n,by=.(cond1)]
 
-  train.threegram.dt <- fread(paste(train.folder,"threegram.prob.csv", sep="/"))
-  #train.threegram.dt <- fread(paste(train.folder,"threegram.trimmed.csv", sep="/"))
+  #train.threegram.dt <- fread(paste(train.folder,"threegram.prob.csv", sep="/"))
+  train.threegram.dt <- fread(paste(train.folder,"threegram.trimmed.csv", sep="/"))
   train.threegram.dt <- train.threegram.dt[,.(cond1,cond2,prediction,p)]
+  train.threegram.dt <- train.threegram.dt[!prediction %in% removeIDs]
   train.threegram.dt[,ngramlevel:=3]
   setkeyv(train.threegram.dt, c("cond1","cond2", "p"))
   train.threegram.dt <- train.threegram.dt[,tail(.SD, 3),by=.(cond1, cond2)] 
@@ -62,9 +70,10 @@ getAccuracyPerWord <- function(train.folder, test.folder){
   train.threegram.dt <- train.threegram.dt[order(cond1,cond2,-p)]
   train.threegram.dt[,rank:=cumsum(n)/n,by=.(cond1,cond2)]
 
-  #train.fourgram.dt <- fread(paste(train.folder,"fourgram.trimmed.csv", sep="/"))
-  train.fourgram.dt <- fread(paste(train.folder,"fourgram.prob.csv", sep="/"))
+  train.fourgram.dt <- fread(paste(train.folder,"fourgram.trimmed.csv", sep="/"))
+  #train.fourgram.dt <- fread(paste(train.folder,"fourgram.prob.csv", sep="/"))
   train.fourgram.dt <- train.fourgram.dt[,.(cond1,cond2,cond3,prediction,p)]
+  train.fourgram.dt <- train.fourgram.dt[!prediction %in% removeIDs]
   train.fourgram.dt[,ngramlevel:=4]
   setkeyv(train.fourgram.dt, c("cond1","cond2", "cond3","p"))
   train.fourgram.dt <- train.fourgram.dt[,tail(.SD, 3),by=.(cond1, cond2,cond3)]
@@ -76,6 +85,7 @@ getAccuracyPerWord <- function(train.folder, test.folder){
   #train.fourgram.dt <- train.fourgram.dt[prank<=3,]
   
   test.dt <- fread(paste(test.folder,"fourgramfreq.csv", sep="/"))
+#  test.dt <- test.dt[!prediction %in% removeIDs]
   setnames(test.dt,"prediction","actual")
   setnames(test.dt,"cond1","actual.cond1")
   setnames(test.dt,"cond2","actual.cond2")
@@ -94,7 +104,8 @@ getAccuracyPerWord <- function(train.folder, test.folder){
                                               .N,sum(rank*(actual==prediction))), 
                                     on=c(cond1="actual.cond1",cond2="actual.cond2",cond3="actual.cond3"), 
                                     by=.EACHI]
-  
+  rm(train.fourgram.dt)
+  gc()
   setnames(match.four,"V6","matchrank")
   match.four[is.na(matchrank)]$matchrank <- 0
   match.four[,c("cond1","cond2","cond3"):=NULL]
@@ -104,6 +115,8 @@ getAccuracyPerWord <- function(train.folder, test.folder){
                                               .N,sum(rank*(actual==prediction))), 
                                     on=c(cond1="actual.cond2",cond2="actual.cond3"), 
                                     by=.EACHI]
+  rm(train.threegram.dt)
+  gc()
   setnames(match.three,"V6","matchrank")
   match.three[is.na(matchrank)]$matchrank <- 0
   match.three[,c("cond1","cond2"):=NULL]
@@ -113,6 +126,8 @@ getAccuracyPerWord <- function(train.folder, test.folder){
                                               .N,sum(rank*(actual==prediction))), 
                                     on=c(cond1="actual.cond3"), 
                                     by=.EACHI]
+  rm(train.twogram.dt)
+  gc()
   setnames(match.two,"V6","matchrank")
   match.two[is.na(matchrank)]$matchrank <- 0
   match.two[,c("cond1"):=NULL]
@@ -121,7 +136,8 @@ getAccuracyPerWord <- function(train.folder, test.folder){
   match.one <- train.onegram.dt[test.dt,.(actual.cond1,actual.cond2,actual.cond3, actual,
                                           n,rank), 
                                 by=.EACHI, on=c(prediction="actual")]
-  
+  rm(train.onegram.dt)
+  gc()
   match.one[is.na(n)]$n <- 3
   match.one[is.na(rank)]$rank <- 0
   match.one[,prediction:=NULL]
@@ -136,6 +152,8 @@ getAccuracyPerWord <- function(train.folder, test.folder){
   s <- Sys.time()
   
   all <- rbind(match.four,match.three,match.two,match.one)
+  rm(match.four,match.three,match.two,match.one)
+  gc()
   all <- all[order(actual.cond1,actual.cond2,actual.cond3,actual,-ngramlevel)]
   all[,levelrank:=(as.logical(matchrank)*(cumsum(N)-N)+matchrank),by=c("actual.cond1","actual.cond2","actual.cond3","actual")]
   all[levelrank==0]$levelrank <- 100

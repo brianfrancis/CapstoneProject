@@ -1,101 +1,16 @@
+source("DataCleaning.R")
 
-
-cleanRawImport <- function(data, forprediction=FALSE) {
-  library(tm)
-  library(stylo); 
-  
-  data <- tolower(data)
-  
-  #remove web sites
-  data <- gsub("(f|ht)tp(s?)://(.*)[.][a-z]+", "", data)
-  
-  data <- gsub("(?<=^|\\s)#\\S+","", data, perl=TRUE)
-  
-  #remove emails
-  data <- gsub("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+", "", data, perl=TRUE)
-  
-  #remove numbers
-  data <- removeNumbers(data)
-  
-  ##replace a / or . with a space
-  data <- gsub("/", " " ,data)
-  
-  # fix contractions
-  data <- gsub("can't|can not", "cannot", data)
-  data <- gsub("shan't", "should not", data)
-  data <- gsub("won't", "will not", data)
-  #he or she
-  data <- gsub("he's", "he is", data)
-  data <- gsub("it's", "it is", data)
-  data <- gsub("let's", "let us", data)
-  data <- gsub("who's", "who is", data)
-  data <- gsub("what's", "what is", data)
-  data <- gsub("that's", "that is", data)
-  #here or there or where
-  data <- gsub("here's", "here is", data)
-  data <- gsub("when's", "when is", data)
-  data <- gsub("who's", "who is", data)
-  data <- gsub("how's", "how is", data)
-  data <- gsub("([a-z])(n't)", "\\1 not", data)
-  data <- gsub("([a-z])('d)", "\\1 would", data)
-  data <- gsub("([a-z])('re)", "\\1 are", data)
-  data <- gsub("([a-z])('m)", "\\1 am", data)
-  data <- gsub("([a-z])('ve)", "\\1 have", data)
-  data <- gsub("([a-z])('ll)", "\\1 will", data)
-  
-  # remove apostrophe s
-  data <- gsub("([a-z])('s)", "\\1", data)
-  
-  #data <- gsub("usa", "united states")  - replace in corp ???
-  data <- gsub("u.s.a.", "united states", data)
-  data <- gsub("u.s.", "united states", data)
-  
-  
-  ##remove punctuation excpet dashes or apostrophes
-  data <- gsub("[^[:alnum:][:space:]-]", "", data)
-  
-  ##remove a leading or trailing - 
-  # remove repeated dashes
-  data <- gsub("-+", "-", data)
-  data <- gsub(" -|- ", " ", data)
-  
-  #replace any remaining dash with a space
-  data <- gsub("-", " ", data)
-  
-  
-  if (forprediction==FALSE){
-    # add end of document characters so we have a full n-gram for every word
-    data <- paste(data, " <end> <end> <end>")
-  }
-  
-  data <- stripWhitespace(data)
-  
-  data
-  
-}
-
-getCorp <- function(data){
-  
-  scorp <- lapply(data, txt.to.words, splitting.rule="[[:space:]]")
-  
-}
-
-
+#clean input and return bag of words
 cleanInput <- function (input){
   #take off anything not followed by a space (part of the prediction not the lookup)
-  partial <- getPartial(input)
-  input <- substr(input, 1, nchar(input) - nchar(partial))
 
-  clean <- cleanRawImport(input, forprediction = TRUE)
+  clean <- cleanRawImport(input)
   
-  # add leading characters to help predict if beginning of sentence
-  clean <- paste("<start> <start> <start> ", clean)
+  partial <- getPartial(clean)
+  clean <- substr(clean, 1, nchar(clean) - nchar(partial))
+
+  corp <- getCorp(clean)
   
-  corp <- unlist(getCorp(clean))
-  corp <- replaceWordsWithIDs(corp, dictionary)
-  
-  #remove words not in dictionary (change to UNK them instread???)
-  corp <-  corp[corp %in% dictionary$wordID]
   corp
 }
 
@@ -107,7 +22,7 @@ getPartial <- function(input) {
   } else {
     words <- unlist(strsplit(input, split=" "))
     last <- words[length(words)]
-    last <- cleanRawImport(last, forprediction=TRUE)
+  #  last <- cleanRawImport(last)
     #create regex expression (starts with this phrase)
     last <- paste("^", last, sep="")
   }
@@ -116,14 +31,21 @@ getPartial <- function(input) {
 
 
 predictNextWordKN <- function(input) {
-  s <- Sys.time()
   
   partial <- getPartial(input)
   
+  s <- Sys.time()
   ##need to remove the last part of the phrase if there is a space ???
   x <- cleanInput(input)
   
 
+  e <- Sys.time()
+  print("clean")
+  print (e-s)
+  
+  s <- Sys.time()
+  
+  
   l <- length(x)
   ##just keep the last maxngram - 1 words
   if (l > (highestngram-1)) {
@@ -135,16 +57,12 @@ predictNextWordKN <- function(input) {
   p3 <- data.table()
   p4 <- data.table()
 
-print(l)
+  
+  s <- Sys.time()
+
   if (l >= 3) {
-       idx <- idx <- ffwhich(fourgram.ff, cond1==x[(length(x)-2)] 
-                             & cond2==x[(length(x)-1)] 
-                             & cond3==x[length(x)])
-       p1 <- as.data.table(fourgram.ff[idx,][c("prediction","p")])
-
-
-     #p1 <- fourgram.dt[cond1==x[(length(x)-2)] & cond2==x[(length(x)-1)] & cond3==x[length(x)] ,
-    #                   .(prediction, p)]
+     p1 <- fourgram.dt[cond1==x[(length(x)-2)] & cond2==x[(length(x)-1)] & cond3==x[length(x)] ,
+                       .(prediction, p)]
   }
   if (l >= 2) {
 
@@ -159,6 +77,13 @@ print(l)
 
   allp <- data.table()
 
+  e <- Sys.time()
+  print("lookup")
+  print (e-s)
+  
+  s <- Sys.time()
+  
+  
   #backoff in case our condition doesn't exist in higher order n-gram
   if (nrow(p1) > 0) {
     p1[,ngramlevel := 4]
@@ -177,37 +102,33 @@ print(l)
   p4[,ngramlevel := 1]
   allp <- rbind(allp,p4)
   allp <- data.table(allp)
-
-  #setkey(allp, "ngramlevel", "p")
-  #allp[,maxngramlevel:= max(ngramlevel), by=prediction]
-  #allp <- allp[ngramlevel==maxngramlevel,]
-  #
-  # allp <- allgram.dt[(cond3==x[(length(x)-2)] & cond2==x[(length(x)-1)]
-  #                    & cond1==x[length(x)] & ngramlevel==4) |
-  #                      (cond2==x[(length(x)-1)]
-  #                        & cond1==x[length(x)] & ngramlevel==3) |
-  #                      (cond1==x[length(x)] & ngramlevel==2) |
-  #                      (ngramlevel==1)
-  #                      ,.(prediction, p, ngramlevel)]
-
   
   allp <- allp[order(-ngramlevel,-p)]
   
   e <- Sys.time()
+  print("get allp")
+  print (e-s)
+  
+  s <- Sys.time()
+  
+  
+  
+  predictions <- unique(allp$prediction)
+
+  predictions <- replaceIDsWithWords(predictions, dictionary)
+
+   if (nchar(partial)>0){
+     predictions <- predictions[grepl(partial, predictions)]
+   }
+
+  e <- Sys.time()
   print("done")
   print (e-s)
   
-  allp
-  # predictions <- unique(allp$prediction)
-  # 
-  # predictions <- replaceIDsWithWords(predictions, dictionary)
-  # 
-  # if (nchar(partial)>0){
-  #   predictions <- predictions[grepl(partial, predictions)]
-  # }
-  # 
-  # predictions
+  predictions
+
 }
+
 
 #trim whitespace
 trim <- function (x) gsub("^\\s+|\\s+$", "", x)
@@ -217,26 +138,3 @@ substrRight <- function(x, n){
   substr(x, nchar(x)-n+1, nchar(x))
 }
 
-
-
-replaceWordsWithIDs <- function(v, dictionary){
-  idlookup <- as.vector(dictionary$wordID)
-  names(idlookup) <- dictionary$word
-  
-  #replace words with ids
-  v <- idlookup[v]
-  names(v) <- NULL
-  
-  v
-}
-
-replaceIDsWithWords <- function(v, dictionary){
-  wordlookup <- as.vector(dictionary$word)
-  names(wordlookup) <- dictionary$wordID
-  
-  #replace words with ids
-  v <- wordlookup[v]
-  names(v) <- NULL
-  
-  v
-}

@@ -177,8 +177,6 @@ replaceOOVWords <- function(corp, dictionary) {
   
   v <- x$word
   
-  is.vector(v)
-  
   newCorp <- split(v,f)
   names(newCorp) <- NULL
   

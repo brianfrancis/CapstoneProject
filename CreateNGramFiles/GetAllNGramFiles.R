@@ -1,40 +1,3 @@
-# U.S. turning in us ?????
-# how to handle abbreviations?????
-# sentence detection may also help.
-
-# /S /???  - remove individual characters other than a / i ???
-# change U.S. to United States and U.S.A. to United States
-
-
-# library(tm)
-# library(stringi)
-# library(RWeka)
-# library(slam)
-# library(stylo); 
-# library(data.table)
-# 
-# 
-# 
-# foldernames <- c("train1", "train2", "train3", "train4", "train5"
-#                  , "train6", "train7", "train8", "test", "validation")
-# 
-
-#code to check unigrams (look for weird words)
-
- # fourgram <- fread("case4/train/fourgramfreq.csv")
- # dictionary <- fread("case4/dictionary/dictionary.csv")
- # setkey(dictionary,wordID)
- # 
- #  setnames(dictionary,"word","cond1")
- # setkey(fourgram,cond1)
- # x <- fourgram[dictionary]
- # 
- # setnames(dictionary,"cond1","prediction")
- # setkey(x,prediction)
- # x <- x[dictionary]
- # x <- x[order(-freq)]
-
-
 setwd("C:/Users/bfrancis/Desktop/Coursera/Capstone/CapstoneProject/CreateNGramFiles")
 
 
@@ -153,7 +116,7 @@ rawDataToNgramFreqs.Test <- function(rawdata.folder, rawdata.filename,
   dictionary <- data.table()
   
   for (j in 81:100) {
-    
+    print(j)
     if (j<90) foldername <- test.folder else foldername <- val.folder
     
     rawsub <- rawdata[i==j]

@@ -3,6 +3,7 @@
 #? Replace numbers with a character ??? N
 #? unknown words - first instance <UNK>
 
+#clean up the raw text
 cleanRawImport <- function(data) {
   library(tm)
   library(stringi)
@@ -34,16 +35,6 @@ cleanRawImport <- function(data) {
   ##replace a / or . with a space
   data <- gsub("/", " " ,data)
   
-  ##change new york to newyork
-  #data <- gsub("new york", "newyork", data)
-  
-  #change san diego san francisco et.c to sandiego sanfransico etc.
-  #data <- gsub("san ", "san", data)
-  
-  #remove a single letter followed by a period (probably an initial)
-  #gsub("( [A-Za-z])\\. ", " ", data)
-  
-  
   # fix contractions
   data <- gsub("can't|can not", "cannot", data)
   data <- gsub("shan't", "should not", data)
@@ -70,15 +61,9 @@ cleanRawImport <- function(data) {
   # remove apostrophe s
   data <- gsub("([a-z])('s)", "\\1", data)
   
-  #data <- gsub("usa", "united states")  - replace in corp ???
-  # data <- gsub("u.s.a.", "united states", data)
-  # data <- gsub("u.s.", "united states", data)
-  # 
-
   #return an entry per sentence
-  #data <- unlist(lapply(data, endOfSentence))
   data <- endOfSentence(data)
-
+  
   ##remove punctuation excpet dashes or apostrophes
   data <- gsub("[^[:alnum:][:space:]-]", "", data)
   
@@ -95,32 +80,31 @@ cleanRawImport <- function(data) {
   
   data <- paste("<start> <start> <start>", data, sep=" ")
   
-#  if (forprediction==FALSE){
-    # add end of document characters so we have a full n-gram for every word
-#    data <- paste(data, "<end> <end> <end>", sep=" ")
-#  }
-
+  
   data <- stripWhitespace(data)
   
-  #stem ?? - do or don't
- # data <- stemDocument(data)
-  
   data
-  
 }
 
+##get a coprus from the data
 getCorp <- function(data){
   library(stylo)
+
+  corp <- txt.to.words(data, splitting.rule="[[:space:]]")
+ 
+  corp <- replaceWords(profanity, newvalue = "<profanity>",
+                       corp = corp)  
+  #replace out of vocabulary words with unk
+  corp <- replaceOOVWords(corp,dictionary)
   
-  scorp <- lapply(data, txt.to.words, splitting.rule="[[:space:]]")
-
-  profanitypath <- "profanity.txt"
-  scorp <- replaceWords(wordListPath = profanitypath, newvalue = "<profanity>",
-                        corp = scorp)  
-
+  #replace words with word IDs
+  corp <- replaceWordsWithIDs(corp, dictionary)
+  
+  corp
+  
 }
 
-
+#parse sentences
 endOfSentence <- function(data){
   library(openNLP)
   library(NLP)
@@ -133,22 +117,60 @@ endOfSentence <- function(data){
   data[a1]
 }
 
-replaceWords <- function(wordListPath, newvalue, corp){
-  library(data.table)  
+#replace words with given value (e.g., replace profanity)
+replaceWords <- function(replaceWords, newvalue, corp){
   
-  replaceWords <- unlist(read.table(wordListPath,header=TRUE, stringsAsFactors = FALSE))
-    
-  v <- unlist(corp)
-  #get indices to recreate list from big vector
-  f <- rep(1:length(corp),sapply(corp,length))
+  v <- corp
   
   v[v %in% replaceWords] <- newvalue
-    
+  
   #turn the vector back into a list
-  newCorp <- split(v,f)
+  newCorp <- v
   names(newCorp) <- NULL      
-    
+  
   newCorp
 }
 
 
+#replace actual words with IDs
+replaceWordsWithIDs <- function(v, dictionary){
+  
+  dt <- data.table(word=v)
+  
+  setkey(dictionary,word)
+  
+  dictionary[dt,on=c(word="word")]$wordID
+  
+}
+
+#replace word IDs with actual words
+replaceIDsWithWords <- function(v, dictionary){
+ 
+  dt <- data.table(wordID=v)
+  
+  setkey(dictionary,wordID)
+
+  dictionary[dt,on=c(wordID="wordID")]$word
+  
+}
+
+#replace out of vocabulary words with UNK
+replaceOOVWords <- function(corp, dictionary) {
+  
+  setkey(dictionary,word)
+  
+  #vector
+  v <- corp
+  
+  dt <- data.table(v)
+  setnames(dt,"v","word")
+  
+  x <- dictionary[dt, on=c(word="word")]
+  
+  x[is.na(x$wordID)]$word <- "<unk>"
+  
+  newCorp <- x$word
+  names(newCorp) <- NULL
+  
+  newCorp
+}

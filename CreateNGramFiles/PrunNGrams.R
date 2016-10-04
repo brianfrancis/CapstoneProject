@@ -45,7 +45,7 @@ pruneNgram <- function(path, fourpercent =.25, threepercent = .25) {
   rm(threegram.freq)
 
   
-  fourgram <- fourgram[order(p/freq)] 
+  fourgram <- fourgram[order(1/freq)] 
   fourgram <- head(fourgram,nrow(fourgram)*fourpercent)
   
   setkey(fourgram,cond1,cond2,cond3)
@@ -58,7 +58,7 @@ pruneNgram <- function(path, fourpercent =.25, threepercent = .25) {
              by.x=c('cond1','cond2','prediction'), 
              by.y=c('cond1','cond2', 'cond3'), all.x=TRUE)
   
-  threegram <- threegram[order(p/freq)] 
+  threegram <- threegram[order(1/freq)] 
   
   threegram.keep <- head(threegram[is.na(N)],
                          nrow(threegram[is.na(N)])*threepercent)
@@ -66,8 +66,8 @@ pruneNgram <- function(path, fourpercent =.25, threepercent = .25) {
   threegram <- rbind(threegram[!is.na(N)], threegram.keep)
   rm(threegram.keep)
   
-  fwrite(threegram,paste(path,"threegram.trimmed.csv",sep="/"))
-  fwrite(fourgram,paste(path,"fourgram.trimmed.csv",sep="/"))
+  fwrite(threegram[,.(cond1,cond2,prediction,p)],paste(path,"threegram.trimmed.csv",sep="/"))
+  fwrite(fourgram[,.(cond1,cond2,cond3,prediction,p)],paste(path,"fourgram.trimmed.csv",sep="/"))
   
 }
 #
