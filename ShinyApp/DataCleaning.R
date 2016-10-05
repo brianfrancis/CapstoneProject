@@ -82,7 +82,6 @@ cleanRawImport <- function(data) {
 
 ##get a coprus from the data
 getCorp <- function(data){
-  library(stylo)
   
   corp <- txt.to.words(data, splitting.rule="[[:space:]]")
  

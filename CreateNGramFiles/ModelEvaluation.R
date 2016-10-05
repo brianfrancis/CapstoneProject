@@ -59,8 +59,8 @@ getAccuracyPerWord <- function(train.folder, test.folder, dictionary.folder){
   train.twogram.dt <- train.twogram.dt[order(cond1,-p)]
   train.twogram.dt[,rank:=cumsum(n)/n,by=.(cond1)]
 
-  #train.threegram.dt <- fread(paste(train.folder,"threegram.prob.csv", sep="/"))
-  train.threegram.dt <- fread(paste(train.folder,"threegram.trimmed.csv", sep="/"))
+  train.threegram.dt <- fread(paste(train.folder,"threegram.prob.csv", sep="/"))
+  #train.threegram.dt <- fread(paste(train.folder,"threegram.trimmed.csv", sep="/"))
   train.threegram.dt <- train.threegram.dt[,.(cond1,cond2,prediction,p)]
   train.threegram.dt <- train.threegram.dt[!prediction %in% removeIDs]
   train.threegram.dt[,ngramlevel:=3]
@@ -70,8 +70,8 @@ getAccuracyPerWord <- function(train.folder, test.folder, dictionary.folder){
   train.threegram.dt <- train.threegram.dt[order(cond1,cond2,-p)]
   train.threegram.dt[,rank:=cumsum(n)/n,by=.(cond1,cond2)]
 
-  train.fourgram.dt <- fread(paste(train.folder,"fourgram.trimmed.csv", sep="/"))
-  #train.fourgram.dt <- fread(paste(train.folder,"fourgram.prob.csv", sep="/"))
+  #train.fourgram.dt <- fread(paste(train.folder,"fourgram.trimmed.csv", sep="/"))
+  train.fourgram.dt <- fread(paste(train.folder,"fourgram.prob.csv", sep="/"))
   train.fourgram.dt <- train.fourgram.dt[,.(cond1,cond2,cond3,prediction,p)]
   train.fourgram.dt <- train.fourgram.dt[!prediction %in% removeIDs]
   train.fourgram.dt[,ngramlevel:=4]
@@ -169,7 +169,7 @@ getAccuracyPerWord <- function(train.folder, test.folder, dictionary.folder){
 }
 
 
-case <- "all"
+case <- "all_new_prune"
 
 train.folder <- paste(case,"train", sep="/")
 test.folder <- paste(case,"test", sep="/")

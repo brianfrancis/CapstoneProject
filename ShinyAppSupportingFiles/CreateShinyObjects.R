@@ -1,13 +1,4 @@
 
-options(warn=-1)
-
-library(stylo)
-library(stringi)
-library(tm)
-library(stringr)
-library(data.table)
-
-highestngram <- 4
 
 ##read in probability tables
 dictionary.by.id <- fread("dictionary.csv")

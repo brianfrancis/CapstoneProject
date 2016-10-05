@@ -17,7 +17,7 @@ createProbFiles <- function(foldername, onegramfile="onegramfreq.csv",
   
   onegram.dt[,c("p"):= signif(onegram.dt$p,4)]
   
-  fwrite(onegram.dt[,.(prediction,p)], paste(foldername,"onegram.prob.csv",sep="/"))
+  write.csv(onegram.dt[,.(prediction,p)], paste(foldername,"onegram.prob.csv",sep="/"),row.names=FALSE)
   
   
   e <- Sys.time()
@@ -62,8 +62,8 @@ createProbFiles <- function(foldername, onegramfile="onegramfreq.csv",
   
   twogram.dt[,c("p"):= signif(twogram.dt$p,4)]
   
-  fwrite(twogram.dt[,.(cond1,prediction,p)], 
-            paste(foldername,"twogram.prob.csv",sep="/"))
+  write.csv(twogram.dt[,.(cond1,prediction,p)], 
+            paste(foldername,"twogram.prob.csv",sep="/"),row.names=FALSE)
 
   
   e <- Sys.time()
@@ -122,8 +122,8 @@ createProbFiles <- function(foldername, onegramfile="onegramfreq.csv",
   
   threegram.dt[,c("p"):= signif(threegram.dt$p,4)]
    
-   fwrite(threegram.dt[, .(cond1,cond2,prediction,p)], 
-             paste(foldername,"threegram.prob.csv",sep="/"))
+   write.csv(threegram.dt[, .(cond1,cond2,prediction,p)], 
+             paste(foldername,"threegram.prob.csv",sep="/"),row.names=FALSE)
   
    #time to write trigram probs
    e <- Sys.time()
@@ -221,8 +221,8 @@ createProbFiles <- function(foldername, onegramfile="onegramfreq.csv",
    
    s <- Sys.time()
    
-   fwrite(fourgram.dt[, .(cond1,cond2,cond3,prediction,p)], 
-             paste(foldername,"fourgram.prob.csv",sep="/"))
+   write.csv(fourgram.dt[, .(cond1,cond2,cond3,prediction,p)], 
+             paste(foldername,"fourgram.prob.csv",sep="/"),row.names=FALSE)
    
    #time to write fourgram probs
    e <- Sys.time()
@@ -264,5 +264,5 @@ mergeProbFiles <- function(folder){
   names(fourgram) <- c("cond3","cond2","cond1","prediction", "p", "ngramlevel")
   
   all <- rbind(fourgram,threegram,twogram,onegram)
-  fwrite(all,paste(folder,"all.prob.csv", sep="/"))
+  write.csv(all,paste(folder,"all.prob.csv", sep="/"),row.names=FALSE)
 }

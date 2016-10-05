@@ -57,84 +57,65 @@ predictNextWordKN <- function(input) {
   kminus1 <- x[length(x)]
   
   e <- Sys.time()
-  #print("initial")
-  #print (e-s)
+  print("initial")
+  print (e-s)
   
-  #s <- Sys.time()
+  s <- Sys.time()
   
+  allp <- data.table()
   
   if (l >= 3) {
-     p1 <- fourgram.dt[cond1==kminus3 
+     allp <- fourgram.dt[cond1==kminus3 
                        & cond2==kminus2
                        & cond3==kminus1,
-                       .(prediction, p)]
+                       .(prediction, p, 4)]
     
   }
   
   e <- Sys.time()
-  #print("p1")
-  #print (e-s)
+  print("p1")
+  print (e-s)
   
-  #s <- Sys.time()
+  s <- Sys.time()
   
   
   if (l >= 2) {
 
-    p2 <- threegram.dt[cond1==kminus2 
+    allp <- rbind(allp,threegram.dt[cond1==kminus2 
                        & cond2==kminus1,
-                       .(prediction, p)]
+                       .(prediction, p,3)])
   }
   
   e <- Sys.time()
-  #print("p2")
-  #print (e-s)
+  print("p2")
+  print (e-s)
   
-  #s <- Sys.time()
+  s <- Sys.time()
   
   
   if (l >= 1) {
   
-    p3 <- twogram.dt[cond1==kminus1,
-                     .(prediction, p)]
+    allp <- rbind(allp,twogram.dt[cond1==kminus1,
+                     .(prediction, p,2)])
   }
 
   e <- Sys.time()
-  #print("p3")
-  #print (e-s)
+  print("p3")
+  print (e-s)
   
-  #s <- Sys.time()
+  s <- Sys.time()
   
   
-  p4 <- onegram.dt[,.(prediction, p)]
+  allp <- rbind(allp,onegram.dt[,.(prediction, p,1)])
+  setnames(allp,"V3","ngramlevel")
 
-  allp <- data.table()
-  
-  #backoff in case our condition doesn't exist in higher order n-gram
-  if (nrow(p1) > 0) {
-    p1[,ngramlevel := 4]
-    allp <- p1
-
-  }
-  if (nrow(p2) > 0) {
-    p2[,ngramlevel := 3]
-    allp <- rbind(allp,p2)
-
-  }
-  if (nrow(p3) > 0) {
-    p3[,ngramlevel := 2]
-    allp <- rbind(allp,p3)
-  }
-  p4[,ngramlevel := 1]
-  allp <- rbind(allp,p4)
-  allp <- data.table(allp)
-  
   allp <- allp[order(-ngramlevel,-p)]
   
   e <- Sys.time()
-  #print("get allp")
-  #print (e-s)
+  print("get allp")
+  print (e-s)
   
-  #s <- Sys.time()
+  s <- Sys.time()
   
   predictions <- unique(allp$prediction)
   predictions <- replaceIDsWithWords(predictions)
@@ -148,7 +129,7 @@ predictNextWordKN <- function(input) {
   print("done")
   print (e-s)
   
-  predictions
+  head(predictions,3)
 
 }
 
