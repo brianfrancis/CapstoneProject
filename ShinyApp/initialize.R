@@ -6,6 +6,9 @@ library(stringi)
 library(tm)
 library(stringr)
 library(data.table)
+library(openNLP)
+library(NLP)
+
 
 highestngram <- 4
 

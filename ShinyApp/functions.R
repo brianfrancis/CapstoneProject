@@ -32,10 +32,11 @@ getPartial <- function(input) {
 
 
 predictNextWordKN <- function(input) {
+  s <- Sys.time()
   
   partial <- getPartial(input)
   
-  s <- Sys.time()
+  #s <- Sys.time()
   ##need to remove the last part of the phrase if there is a space ???
   x <- cleanInput(input)
   
@@ -56,10 +57,10 @@ predictNextWordKN <- function(input) {
   kminus1 <- x[length(x)]
   
   e <- Sys.time()
-  print("initial")
-  print (e-s)
+  #print("initial")
+  #print (e-s)
   
-  s <- Sys.time()
+  #s <- Sys.time()
   
   
   if (l >= 3) {
@@ -71,10 +72,10 @@ predictNextWordKN <- function(input) {
   }
   
   e <- Sys.time()
-  print("p1")
-  print (e-s)
+  #print("p1")
+  #print (e-s)
   
-  s <- Sys.time()
+  #s <- Sys.time()
   
   
   if (l >= 2) {
@@ -85,10 +86,10 @@ predictNextWordKN <- function(input) {
   }
   
   e <- Sys.time()
-  print("p2")
-  print (e-s)
+  #print("p2")
+  #print (e-s)
   
-  s <- Sys.time()
+  #s <- Sys.time()
   
   
   if (l >= 1) {
@@ -98,10 +99,10 @@ predictNextWordKN <- function(input) {
   }
 
   e <- Sys.time()
-  print("p3")
-  print (e-s)
+  #print("p3")
+  #print (e-s)
   
-  s <- Sys.time()
+  #s <- Sys.time()
   
   
   p4 <- onegram.dt[,.(prediction, p)]
@@ -130,10 +131,10 @@ predictNextWordKN <- function(input) {
   allp <- allp[order(-ngramlevel,-p)]
   
   e <- Sys.time()
-  print("get allp")
-  print (e-s)
+  #print("get allp")
+  #print (e-s)
   
-  s <- Sys.time()
+  #s <- Sys.time()
   
   predictions <- unique(allp$prediction)
   predictions <- replaceIDsWithWords(predictions)

@@ -5,12 +5,6 @@
 
 #clean up the raw text
 cleanRawImport <- function(data) {
-  library(tm)
-  library(stringi)
-  #library(RWeka)
-  #library(slam)
-  library(stylo); 
-  #library(data.table)
   
   Encoding(data) <- "UTF-8"
   
@@ -107,9 +101,6 @@ getCorp <- function(data){
 
 #parse sentences
 endOfSentence <- function(data){
-  library(openNLP)
-  library(NLP)
-  library(stringr)
   
   
   sent_token_annotator <- Maxent_Sent_Token_Annotator(language = "en")
