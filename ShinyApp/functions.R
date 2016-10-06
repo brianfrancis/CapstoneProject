@@ -64,11 +64,12 @@ predictNextWordKN <- function(input) {
   
   allp <- data.table()
   
+  
   if (l >= 3) {
-     allp <- fourgram.dt[cond1==kminus3 
-                       & cond2==kminus2
-                       & cond3==kminus1,
-                       .(prediction, p, 4)]
+    sql <- paste("SELECT prediction, p, 4 as ngramlevel FROM FOURGRAM
+                 WHERE cond1=", kminus3, " AND cond2=", kminus2,
+                 " AND cond3=", kminus1, sep="") 
+    allp <- dbGetQuery(ngramdb,sql)
     
   }
   
@@ -81,9 +82,11 @@ predictNextWordKN <- function(input) {
   
   if (l >= 2) {
 
-    allp <- rbind(allp,threegram.dt[cond1==kminus2 
-                       & cond2==kminus1,
-                       .(prediction, p,3)])
+    sql <- paste("SELECT prediction, p, 3 as ngramlevel FROM THREEGRAM
+                 WHERE cond1=", kminus2, " AND cond2=", kminus1,
+                 sep="") 
+    allp <- rbind(allp,dbGetQuery(ngramdb,sql))
+    
   }
   
   e <- Sys.time()
@@ -95,8 +98,11 @@ predictNextWordKN <- function(input) {
   
   if (l >= 1) {
   
-    allp <- rbind(allp,twogram.dt[cond1==kminus1,
-                     .(prediction, p,2)])
+    sql <- paste("SELECT prediction, p, 2 as ngramlevel FROM TWOGRAM
+                 WHERE cond1=", kminus1,
+                 sep="") 
+    allp <- rbind(allp,dbGetQuery(ngramdb,sql))
+                  
   }
 
   e <- Sys.time()
@@ -105,9 +111,9 @@ predictNextWordKN <- function(input) {
   
   s <- Sys.time()
   
-  
-  allp <- rbind(allp,onegram.dt[,.(prediction, p,1)])
-  setnames(allp,"V3","ngramlevel")
+  onegram.dt[,ngramlevel:=1]
+  allp <- rbind(allp,onegram.dt[,.(prediction, p,ngramlevel)])
+  #setnames(allp,"V3","ngramlevel")
 
   allp <- allp[order(-ngramlevel,-p)]
   

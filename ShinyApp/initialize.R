@@ -8,17 +8,22 @@ library(stringr)
 library(data.table)
 library(openNLP)
 library(NLP)
+library(RSQLite)
 
 
 highestngram <- 4
 
 
-print(system.time(fourgram.dt <- readRDS("fourgram.rds")))
-print(system.time(threegram.dt <- readRDS("threegram.rds")))
-twogram.dt <- readRDS("twogram.rds")
+#fourgram.dt <- readRDS("fourgram.rds")
+#threegram.dt <- readRDS("threegram.rds")
+#twogram.dt <- readRDS("twogram.rds")
 onegram.dt <- readRDS("onegram.rds")
 dictionary.by.id <- readRDS("dictionary.by.id.rds")
 dictionary.by.word <- readRDS("dictionary.by.word.rds")
 profanity <- readRDS("profanity.rds")
+
+sqlite    <- dbDriver("SQLite")
+ngramdb <- dbConnect(sqlite,"ngram.db")
+
 
 
