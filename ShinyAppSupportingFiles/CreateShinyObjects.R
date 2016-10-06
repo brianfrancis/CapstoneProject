@@ -9,6 +9,8 @@ threegram.dt <- fread("threegram.prob.csv")
 fourgram.dt <- fread("fourgram.prob.csv")
 profanity <- unlist(read.table("profanity.txt",header=TRUE, stringsAsFactors = FALSE))
 
+dictionary.by.id <- dictionary.by.id[onegram.dt[,.(prediction)],on=c(wordID="prediction")]
+dictionary.by.word <- dictionary.by.word[onegram.dt[,.(prediction)],on=c(wordID="prediction")]
 
 setkey(dictionary.by.id,wordID)
 setkey(dictionary.by.word,word)
