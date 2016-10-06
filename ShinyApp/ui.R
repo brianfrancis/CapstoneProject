@@ -1,8 +1,9 @@
 pageWithSidebar(
-  headerPanel('Word Prediciton'),
+  headerPanel('Word Prediction'),
   sidebarPanel(
-    numericInput('clusters', 'Cluster count', 3,
-                 min = 1, max = 9)
+    h4('Type some text followed by a space to get the next word predictions.'),
+    h4('Start typing the next word to refine the predictions.'),
+    h4('Select a predicted word to append it to your input text.')
   ),
   mainPanel(
     singleton(
@@ -17,7 +18,9 @@ pageWithSidebar(
            });'))),
     
     fluidRow(
-           column(12, textAreaInput("ngram", "Type Some Text"), #tags$textarea(id="ngram", rows=3, cols=40, autofocus = "autofocus"),
+           column(12, textAreaInput("ngram", "Type Some Text", 
+                                    placeholder="Enter space at end to predict next word",
+                                    rows=5), #tags$textarea(id="ngram", rows=3, cols=40, autofocus = "autofocus"),
                   
              fluidRow(
                column(2,uiOutput("prediction1")),

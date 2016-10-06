@@ -47,7 +47,9 @@ shinyServer(
           actionButton("inputPrediction3", label = reac$predictions[3])
         })
         
-        session$sendCustomMessage(type="refocus",message=list(NULL))
+        if (nchar(reac$ngram)>0) {
+          session$sendCustomMessage(type="refocus",message=list(NULL))
+        }
         
       })
     })
