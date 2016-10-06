@@ -93,7 +93,8 @@ rawDataToNgramFreqs.Train <- function(rawdata.folder, rawdata.filename,
 }
 
 rawDataToNgramFreqs.Test <- function(rawdata.folder, rawdata.filename, 
-                                      test.folder="test",
+                                      train.folder="train,"
+                                     test.folder="test",
                                       val.folder="validation",
                                       dictionary.folder="dictionary", 
                                       dictionary.filename="dictionary.csv",
@@ -127,9 +128,13 @@ rawDataToNgramFreqs.Test <- function(rawdata.folder, rawdata.filename,
     wordCorp <- getCorp(processeddata)
     rm(processeddata)
     
+    #get dictionary merging with onegrams (so we can remove unks that are
+    #not in the training set)
     dictionary <- fread(paste(dictionary.folder, dictionary.filename, sep="/"))
+    onegram.dt <- fread(paste(train.folder, "onegramfreq.csv", sep="/"))
     
-    # what to do if not training data ???
+    dictionary <- dictionary[onegram.dt[,.(prediction)], on=c(wordID="prediction")]
+    
     wordCorp <- replaceOOVWords(wordCorp, dictionary)
     
     idCorp <- replaceWordsWithIDs(wordCorp, dictionary)
