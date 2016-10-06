@@ -136,6 +136,7 @@ replaceFirstWordWithUNK <- function(olddictionary, dictionary,corp){
   #otherwise everything in the dictionary is new
   if (nrow(olddictionary) > 0) {
     setkey(olddictionary,word)
+    setkey(dictionary,word)
     x <- olddictionary[dictionary]
     newwords <- x[is.na(x$wordID)]$word
   } else {

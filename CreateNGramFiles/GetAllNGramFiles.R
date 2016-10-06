@@ -24,7 +24,11 @@ rawDataToNgramFreqs.Train <- function(rawdata.folder, rawdata.filename,
   close(con)
   i <-  sample(rep(1:100),size=length(rawdata), replace=TRUE)
   
-  dictionary <- data.table()
+  #get dictionary
+  if (initial.run=TRUE) {
+    dictionary <- data.table()} 
+  else {
+    dictionary <- fread(paste(dictionary.folder,dictionary.filename,sep="/"))}
     
   for (j in 1:80) {
     print(j)
@@ -52,7 +56,7 @@ rawDataToNgramFreqs.Train <- function(rawdata.folder, rawdata.filename,
     # otherwise we append to the existing files
     if (j==1 && initial.run==TRUE) initialfile <- TRUE else initialfile <- FALSE
     
-    
+    #set old dictionary to previous dictionary
     olddictionary <- dictionary
     
     
