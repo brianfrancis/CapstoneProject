@@ -42,7 +42,7 @@ appendToDictionary <- function(corp,
   }
   
   
-  fwrite(dictionary, paste(dict.foldername, dict.filename, sep="/"))
+  write.csv(dictionary, paste(dict.foldername, dict.filename, sep="/"),row.names=FALSE)
 
   
   dictionary  
@@ -106,7 +106,7 @@ appendToNgram <- function(corp, filename, foldername,
   ##if not bring in the existing info and get the next word ID
   ##otherwise next word ID = 1
   if (initialfile == FALSE){
-    repo.ngramfreq <- fread(paste(foldername, filename, sep="/"))
+    repo.ngramfreq <- readRDS(paste(foldername, filename, sep="/"))
     combined <- rbind(repo.ngramfreq, new.ngramfreq)
     rm(repo.ngramfreq,new.ngramfreq)
     
@@ -124,7 +124,7 @@ appendToNgram <- function(corp, filename, foldername,
   }
   
   
-  fwrite(repo.ngramfreq, paste(foldername, filename, sep="/"))
+  saveRDS(repo.ngramfreq, paste(foldername, filename, sep="/"))
   
 }
 

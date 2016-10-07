@@ -25,7 +25,7 @@ rawDataToNgramFreqs.Train <- function(rawdata.folder, rawdata.filename,
   i <-  sample(rep(1:100),size=length(rawdata), replace=TRUE)
   
   #get dictionary
-  if (initial.run=TRUE) {
+  if (initial.run==TRUE) {
     dictionary <- data.table()} 
   else {
     dictionary <- fread(paste(dictionary.folder,dictionary.filename,sep="/"))}
@@ -78,18 +78,20 @@ rawDataToNgramFreqs.Train <- function(rawdata.folder, rawdata.filename,
     gc()
     
 
-    appendToNgram(idCorp, filename="onegramfreq.csv", foldername=foldername, 
+    appendToNgram(idCorp, filename="onegramfreq.rds", foldername=foldername, 
                   initialfile, ngramsize=1)
     
-    appendToNgram(idCorp, filename="twogramfreq.csv", foldername=foldername, 
+    appendToNgram(idCorp, filename="twogramfreq.rds", foldername=foldername, 
                   initialfile, ngramsize=2)
     
-    appendToNgram(idCorp, filename="threegramfreq.csv", foldername=foldername, 
+    appendToNgram(idCorp, filename="threegramfreq.rds", foldername=foldername, 
                   initialfile, ngramsize=3)
     
-    appendToNgram(idCorp, filename="fourgramfreq.csv", foldername=foldername, 
+    appendToNgram(idCorp, filename="fourgramfreq.rds", foldername=foldername, 
                   initialfile, ngramsize=4)
     
+    appendToNgram(idCorp, filename="fivegramfreq.rds", foldername=foldername, 
+                  initialfile, ngramsize=5)
     rm(idCorp)
     gc()
     
@@ -97,7 +99,7 @@ rawDataToNgramFreqs.Train <- function(rawdata.folder, rawdata.filename,
 }
 
 rawDataToNgramFreqs.Test <- function(rawdata.folder, rawdata.filename, 
-                                      train.folder="train,"
+                                      train.folder="train",
                                      test.folder="test",
                                       val.folder="validation",
                                       dictionary.folder="dictionary", 
@@ -149,17 +151,20 @@ rawDataToNgramFreqs.Test <- function(rawdata.folder, rawdata.filename,
     #initial ngram creation if intial run and j = 1 (first train) or 9 / 10 (first train / validation)
     if (initial.run==TRUE) initialfile <- TRUE else initialfile <- FALSE
     
-    appendToNgram(idCorp, filename="onegramfreq.csv", foldername=foldername, 
+    appendToNgram(idCorp, filename="onegramfreq.rds", foldername=foldername, 
                   initialfile, ngramsize=1)
     
-    appendToNgram(idCorp, filename="twogramfreq.csv", foldername=foldername, 
+    appendToNgram(idCorp, filename="twogramfreq.rds", foldername=foldername, 
                   initialfile, ngramsize=2)
     
-    appendToNgram(idCorp, filename="threegramfreq.csv", foldername=foldername, 
+    appendToNgram(idCorp, filename="threegramfreq.rds", foldername=foldername, 
                   initialfile, ngramsize=3)
     
-    appendToNgram(idCorp, filename="fourgramfreq.csv", foldername=foldername, 
+    appendToNgram(idCorp, filename="fourgramfreq.rds", foldername=foldername, 
                   initialfile, ngramsize=4)
+    
+    appendToNgram(idCorp, filename="fivegramfreq.rds", foldername=foldername, 
+                  initialfile, ngramsize=5)
     
     rm(idCorp)
     gc()
@@ -171,16 +176,16 @@ rawDataToNgramFreqs.Test <- function(rawdata.folder, rawdata.filename,
 
 setwd("C:/Users/bfrancis/Desktop/Coursera/Capstone/CapstoneProject/CreateNGramFiles")
 
-case <- "all"
+case <- "all_new"
 
 trainfolder <- paste(case,"train", sep="/")
 testfolder <- paste(case,"test", sep="/")
 valfolder <- paste(case,"validation", sep="/")
 dictfolder <- paste(case,"dictionary", sep="/")
-nbr_rows <- -1L
+nbr_rows <- -L
 
 rawDataToNgramFreqs.Train(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
-                    rawdata.file = "en_US.blogs.txt",
+                    rawdata.filename = "en_US.blogs.txt",
                     nbrlines = nbr_rows,
                     initial.run = TRUE,
                     train.folder=trainfolder,
