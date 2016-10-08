@@ -73,3 +73,14 @@ pruneNgram <- function(path, fourpercent =.25, threepercent = .25) {
 #
 
 
+
+simplePrune <- function(folder,freqfile,probfile,key,minfreq=1){
+  freq <- readRDS(paste(folder,freqfile,sep="/"))
+  setkeyv(freq,key)
+  prob <- readRDS(paste(folder,probfile,sep="/"))
+  setkeyv(prob,key)
+  #saveRDS(prob[freq[freq>1]][,c(key,"p")],probfile)
+  join <- prob[freq[freq>1]]
+  join[,freq:=NULL]
+  saveRDS(join,paste(folder,probfile,sep="/"))
+}

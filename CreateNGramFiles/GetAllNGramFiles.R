@@ -120,11 +120,16 @@ rawDataToNgramFreqs.Test <- function(rawdata.folder, rawdata.filename,
   close(con)
   i <-  sample(rep(1:100),size=length(rawdata), replace=TRUE)
   
-  dictionary <- data.table()
+  #get dictionary merging with onegrams (so we can remove unks that are
+  #not in the training set)
+  dictionary <- fread(paste(dictionary.folder, dictionary.filename, sep="/"))
+  onegram.dt <- readRDS(paste(train.folder, "onegramfreq.rds", sep="/"))
+  
+  dictionary <- dictionary[onegram.dt[,.(prediction)], on=c(wordID="prediction")]
   
   for (j in 81:100) {
     print(j)
-    if (j<90) foldername <- test.folder else foldername <- val.folder
+    if (j<=90) foldername <- test.folder else foldername <- val.folder
     
     rawsub <- rawdata[i==j]
     
@@ -134,13 +139,6 @@ rawDataToNgramFreqs.Test <- function(rawdata.folder, rawdata.filename,
     wordCorp <- getCorp(processeddata)
     rm(processeddata)
     
-    #get dictionary merging with onegrams (so we can remove unks that are
-    #not in the training set)
-    dictionary <- fread(paste(dictionary.folder, dictionary.filename, sep="/"))
-    onegram.dt <- fread(paste(train.folder, "onegramfreq.csv", sep="/"))
-    
-    dictionary <- dictionary[onegram.dt[,.(prediction)], on=c(wordID="prediction")]
-    
     wordCorp <- replaceOOVWords(wordCorp, dictionary)
     
     idCorp <- replaceWordsWithIDs(wordCorp, dictionary)
@@ -149,7 +147,7 @@ rawDataToNgramFreqs.Test <- function(rawdata.folder, rawdata.filename,
     gc()
     
     #initial ngram creation if intial run and j = 1 (first train) or 9 / 10 (first train / validation)
-    if (initial.run==TRUE) initialfile <- TRUE else initialfile <- FALSE
+    if (initial.run==TRUE & (j==81 | j==91)) initialfile <- TRUE else initialfile <- FALSE
     
     appendToNgram(idCorp, filename="onegramfreq.rds", foldername=foldername, 
                   initialfile, ngramsize=1)
@@ -182,7 +180,7 @@ trainfolder <- paste(case,"train", sep="/")
 testfolder <- paste(case,"test", sep="/")
 valfolder <- paste(case,"validation", sep="/")
 dictfolder <- paste(case,"dictionary", sep="/")
-nbr_rows <- -L
+nbr_rows <- -1L
 
 rawDataToNgramFreqs.Train(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                     rawdata.filename = "en_US.blogs.txt",
@@ -206,7 +204,7 @@ rawDataToNgramFreqs.Train(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/C
 
 source("CreateProbFiles.R")
 
-createProbFiles(trainfolder)
+createProbFiles("all_new/train")
 
 rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                         rawdata.file = "en_US.blogs.txt",
@@ -214,7 +212,8 @@ rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Ca
                         initial.run = TRUE,
                         test.folder=testfolder,
                         val.folder = valfolder,
-                        dictionary.folder=dictfolder)
+                        dictionary.folder=dictfolder,
+                        train.folder = trainfolder)
 
 rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                          rawdata.file = "en_US.news.txt",
@@ -222,7 +221,8 @@ rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Ca
                          initial.run = FALSE,
                          test.folder=testfolder,
                          val.folder = valfolder,
-                         dictionary.folder=dictfolder)
+                         dictionary.folder=dictfolder,
+                         train.folder = trainfolder)
 
 rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Capstone/Coursera-SwiftKey/final/en_US",
                          rawdata.file = "en_US.twitter.txt",
@@ -230,5 +230,6 @@ rawDataToNgramFreqs.Test(rawdata.folder = "C:/Users/bfrancis/Desktop/Coursera/Ca
                          initial.run = FALSE,
                          test.folder=testfolder,
                          val.folder = valfolder,
-                         dictionary.folder=dictfolder)
+                         dictionary.folder=dictfolder,
+                         train.folder = trainfolder)
 

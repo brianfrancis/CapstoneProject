@@ -2,33 +2,28 @@
 source("MyFunctions.R")
 
 
-createProbFiles <- function(foldername, onegramfile="onegramfreq.csv", 
-                            twogramfile="twogramfreq.csv",
-                            threegramfile="threegramfreq.csv", 
-                            fourgramfile="fourgramfreq.csv") 
+createProbFiles <- function(foldername, onegramfile="onegramfreq.rds", 
+                            twogramfile="twogramfreq.rds",
+                            threegramfile="threegramfreq.rds", 
+                            fourgramfile="fourgramfreq.rds",
+                            fivegramfile="fivegramfreq.rds") 
 {
 
   library(data.table)
   
-  s <- Sys.time()
-  
-  onegram.dt <- fread(paste(foldername, onegramfile, sep="/"))
+
+  onegram.dt <- readRDS(paste(foldername, onegramfile, sep="/"))
   onegram.dt[, p:=freq/sum(freq)]
   
   onegram.dt[,c("p"):= signif(onegram.dt$p,4)]
   
-  write.csv(onegram.dt[,.(prediction,p)], paste(foldername,"onegram.prob.csv",sep="/"),row.names=FALSE)
+  saveRDS(onegram.dt[,.(prediction,p)], paste(foldername,"onegram.prob.rds",sep="/"))
   
-  
-  e <- Sys.time()
-  print('Time to create and write unigram')
-  print(e-s)
-  
+
   ####################################################################################
   ##start bigrams processing
-  s <- Sys.time()
   
-  twogram.dt <- fread(paste(foldername, twogramfile, sep="/"))
+  twogram.dt <- readRDS(paste(foldername, twogramfile, sep="/"))
   setkey(twogram.dt,cond1)
    
   #get counts from unigram
@@ -62,21 +57,15 @@ createProbFiles <- function(foldername, onegramfile="onegramfreq.csv",
   
   twogram.dt[,c("p"):= signif(twogram.dt$p,4)]
   
-  write.csv(twogram.dt[,.(cond1,prediction,p)], 
-            paste(foldername,"twogram.prob.csv",sep="/"),row.names=FALSE)
+  saveRDS(twogram.dt[,.(cond1,prediction,p)], 
+            paste(foldername,"twogram.prob.rds",sep="/"))
 
-  
-  e <- Sys.time()
-  print('Time to write bigram probs')
-  print(e-s)
   
   ####################################################################################
   ##start trigrams processing
   
-  s <- Sys.time()
-  
   #read in trigram frequencies
-  threegram.dt <- fread(paste(foldername, threegramfile, sep="/"))
+  threegram.dt <- readRDS(paste(foldername, threegramfile, sep="/"))
   setkey(threegram.dt,cond1,cond2)
   
   # get need bigram info and merge with trigrams
@@ -122,33 +111,15 @@ createProbFiles <- function(foldername, onegramfile="onegramfreq.csv",
   
   threegram.dt[,c("p"):= signif(threegram.dt$p,4)]
    
-   write.csv(threegram.dt[, .(cond1,cond2,prediction,p)], 
-             paste(foldername,"threegram.prob.csv",sep="/"),row.names=FALSE)
+   saveRDS(threegram.dt[, .(cond1,cond2,prediction,p)], 
+             paste(foldername,"threegram.prob.rds",sep="/"))
   
-   #time to write trigram probs
-   e <- Sys.time()
-   print('Time to write trigram probs')
-   print(e-s)
     
    ####################################################################################
    ##start quad-grams processing
    
-   s <- Sys.time()
-  
    #read in fourgram frequencies
-   fourgram.dt <- fread(paste(foldername, fourgramfile, sep="/"))
-   
-   e <- Sys.time()
-   print('read 4gram time')
-   print(e-s)
-   
-   s <- Sys.time()
-   
-   e <- Sys.time()
-   print('split ngram')
-   print(e-s)
-   
-   s <- Sys.time()
+   fourgram.dt <- readRDS(paste(foldername, fourgramfile, sep="/"))
    
    setkey(fourgram.dt,cond1,cond2,cond3)
    
@@ -165,13 +136,6 @@ createProbFiles <- function(foldername, onegramfile="onegramfreq.csv",
    rm(threegram.dt)
    gc()
    
-   
-   e <- Sys.time()
-   print('merge 3gram and 4gram')
-   print(e-s)
-   
-   s <- Sys.time()
- 
    #get cardinalilty of word in fourgram
    setkey(fourgram.dt, prediction)
    fourgram.dt[, fourgram.cardGivenWord := .(.N), by=.(prediction)]
@@ -179,13 +143,6 @@ createProbFiles <- function(foldername, onegramfile="onegramfreq.csv",
    #get cardinality of condition (previous 3 words) in fourgram
    setkey(fourgram.dt, cond1,cond2,cond3)
    fourgram.dt[, fourgram.cardGivenCondition := .(.N), by=.(cond1,cond2,cond3)]
-   
-   
-   e <- Sys.time()
-   print('get cardinality')
-   print(e-s)
-   
-   s <- Sys.time()
    
    #get teh contuniation probability for the trigrams
    fourgram.dt[, c("trigram.p")
@@ -204,30 +161,68 @@ createProbFiles <- function(foldername, onegramfile="onegramfreq.csv",
                            x4=trigram.p)]
    
    #drop columns we don't need anymore
-   fourgram.dt[,c("fourgram.cardGivenCondition", "trigram.p"):=NULL]
+   #fourgram.dt[,c("fourgram.cardGivenCondition", "trigram.p"):=NULL]
    
-   
-   e <- Sys.time()
-   print('get p')
-   print(e-s)
-   
-   s <- Sys.time()
    
    fourgram.dt[,c("p"):= signif(fourgram.dt$p,4)]
    
-   e <- Sys.time()
-   print('Time to get signif digits')
-   print(e-s)
+   saveRDS(fourgram.dt[, .(cond1,cond2,cond3,prediction,p)], 
+             paste(foldername,"fourgram.prob.rds",sep="/"))
    
-   s <- Sys.time()
+
+   ##start 5-grams processing
    
-   write.csv(fourgram.dt[, .(cond1,cond2,cond3,prediction,p)], 
-             paste(foldername,"fourgram.prob.csv",sep="/"),row.names=FALSE)
+   #read in fivegram frequencies
+   fivegram.dt <- readRDS(paste(foldername, fivegramfile, sep="/"))
    
-   #time to write fourgram probs
-   e <- Sys.time()
-   print('Time to write quadgram probs')
-   print(e-s)
+   setkey(fivegram.dt,cond1,cond2,cond3,cond4)
+   
+   # get need trigram info and merge with fourgrams
+   fourgram.dt[, c("threegram.freq", "p") := NULL]
+   setnames(fourgram.dt, "freq", "fourgram.freq")
+   setkey(fourgram.dt,cond1,cond2,cond3,prediction)
+   
+   #merge data tables
+   fivegram.dt <- fivegram.dt[fourgram.dt, on=c(cond1 = "cond1", 
+                                                 cond2="cond2",
+                                                cond3="cond3",
+                                                 cond4="prediction"),
+                              nomatch=0]
+   rm(fourgram.dt)
+   gc()
+   
+   #get cardinalilty of word in fourgram
+   setkey(fivegram.dt, prediction)
+   fivegram.dt[, fivegram.cardGivenWord := .(.N), by=.(prediction)]
+   
+   #get cardinality of condition (previous 3 words) in fourgram
+   setkey(fivegram.dt, cond1,cond2,cond3,cond4)
+   fivegram.dt[, fivegram.cardGivenCondition := .(.N), by=.(cond1,cond2,cond3,cond4)]
+   
+   #get teh contuniation probability for the trigrams
+   fivegram.dt[, c("fourgram.p")
+               := smoothP(x1=fivegram.cardGivenWord,  # nbr of fourgrams ending in the word
+                          x2=.N,  # nbr of fourgrams
+                          x3=fourgram.cardGivenCondition,  # nbr of trigrams having the condition (second word in trigramm)
+                          x4=trigram.p)]  # the continuation probability for trigrams previously calculated for bigrams
+   
+   #drop columns we don't need anymore
+   fivegram.dt[,c("fivegram.cardGivenWord", "fourgram.cardGivenCondition", "trigram.p"):=NULL]
+   
+   #get probability for the trigram as if it is the highest order n-gram
+   fivegram.dt[, c("p")
+               := smoothP(x1=freq, x2=fourgram.freq,
+                          x3=fivegram.cardGivenCondition,
+                          x4=fourgram.p)]
+   
+   #drop columns we don't need anymore
+   fivegram.dt[,c("fivegram.cardGivenCondition", "fourgram.p"):=NULL]
+   
+   
+   fivegram.dt[,c("p"):= signif(fivegram.dt$p,4)]
+   
+   saveRDS(fivegram.dt[, .(cond1,cond2,cond3,cond4,prediction,p)], 
+           paste(foldername,"fivegram.prob.rds",sep="/"))
    
 }
 
@@ -239,7 +234,7 @@ smoothP <- function(x1, x2,  x3 ,x4, discount=.75){
 }
 
 mergeProbFiles <- function(folder){
-  onegram <- fread(paste(folder,"onegram.prob.csv", sep="/"))
+  onegram <- readRDS(paste(folder,"onegram.prob.csv", sep="/"))
   onegram[,freq:=NULL]
   onegram[,ngramlevel:=1]
   onegram[,cond1:=NA]
@@ -247,22 +242,22 @@ mergeProbFiles <- function(folder){
   onegram[,cond3:=NA]
   setcolorder(onegram, c("cond3", "cond2", "cond1", "prediction", "p", "ngramlevel"))
   
-  twogram <- fread(paste(folder,"twogram.prob.csv", sep="/"))
+  twogram <- readRDS(paste(folder,"twogram.prob.csv", sep="/"))
   twogram[,ngramlevel:=2]
   twogram[,cond2:=NA]
   twogram[,cond3:=NA]
   setcolorder(twogram, c("cond3", "cond2", "cond1", "prediction", "p", "ngramlevel"))
   
-  threegram <- fread(paste(folder,"threegram.prob.csv", sep="/"))
+  threegram <- readRDS(paste(folder,"threegram.prob.csv", sep="/"))
   threegram[,ngramlevel:=3]
   names(threegram) <- c("cond2","cond1","prediction", "p", "ngramlevel")
   threegram[,cond3:=NA]
   setcolorder(threegram, c("cond3", "cond2", "cond1", "prediction", "p", "ngramlevel"))
   
-  fourgram <- fread(paste(folder,"fourgram.prob.csv", sep="/"))
+  fourgram <- readRDS(paste(folder,"fourgram.prob.csv", sep="/"))
   fourgram[,ngramlevel:=4]
   names(fourgram) <- c("cond3","cond2","cond1","prediction", "p", "ngramlevel")
   
   all <- rbind(fourgram,threegram,twogram,onegram)
-  write.csv(all,paste(folder,"all.prob.csv", sep="/"),row.names=FALSE)
+  saveRDS(all,paste(folder,"all.prob.rds", sep="/"))
 }
