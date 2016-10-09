@@ -23,9 +23,9 @@ getPartial <- function(input) {
   } else {
     words <- unlist(strsplit(input, split=" "))
     last <- words[length(words)]
-  #  last <- cleanRawImport(last)
-    #create regex expression (starts with this phrase)
-    last <- paste("^", last, sep="")
+  # #  last <- cleanRawImport(last)
+  #   #create regex expression (starts with this phrase)
+     last <- paste("", last, sep="")
   }
   last
 }
@@ -40,6 +40,12 @@ predictNextWordKN <- function(input) {
   ##need to remove the last part of the phrase if there is a space ???
   x <- cleanInput(input)
   
+  e <- Sys.time()
+  print("clean")
+  print (e-s)
+  
+  s <- Sys.time()
+  
   
   l <- length(x)
   ##just keep the last maxngram - 1 words
@@ -47,11 +53,7 @@ predictNextWordKN <- function(input) {
     x <- x[(l-highestngram+2):l]
   }
   
-  p1 <- data.table()
-  p2 <- data.table()
-  p3 <- data.table()
-  p4 <- data.table()
-
+  if (length(x) >=4) {kminus4 <- x[(length(x)-3)]}
   if (length(x) >=3) {kminus3 <- x[(length(x)-2)]}
   if (length(x) >=2) {kminus2 <- x[(length(x)-1)]}
   kminus1 <- x[length(x)]
@@ -62,81 +64,100 @@ predictNextWordKN <- function(input) {
   
   s <- Sys.time()
   
-  allp <- data.table()
+  sql <- character(0)
+  
+  if (l >= 4) {
+    
+    sql <- paste(sql, "SELECT word, p, ngramlevel FROM (SELECT p, 5 as ngramlevel, d.word as word
+                 FROM FIVEGRAM as ng",
+                 " INNER JOIN DICTIONARY as d",
+                 " ON ng.prediction = d.wordID",
+                 " WHERE ng.cond1=", kminus4, " AND ng.cond2=", kminus3,
+                 " AND ng.cond3=", kminus2, " AND ng.cond4=", kminus1 ,
+                 sep="")
+    
+    if (nchar(partial)>0){
+      sql <- paste(sql," AND d.word like '", partial,"%'", sep="")
+    }
+    sql <- paste(sql," ORDER BY p DESC LIMIT 3) S0",sep="")
+    sql <- paste(sql," UNION ", sep="")
+  }
   
   
   if (l >= 3) {
-    sql <- paste("SELECT prediction, p, 4 as ngramlevel FROM FOURGRAM
-                 WHERE cond1=", kminus3, " AND cond2=", kminus2,
-                 " AND cond3=", kminus1, sep="") 
-    allp <- dbGetQuery(ngramdb,sql)
     
+      sql <- paste(sql, "SELECT word, p, ngramlevel FROM (SELECT p, 4 as ngramlevel, d.word as word
+                   FROM FOURGRAM as ng",
+                    " INNER JOIN DICTIONARY as d",
+                    " ON ng.prediction = d.wordID",
+                    " WHERE ng.cond1=", kminus3, " AND ng.cond2=", kminus2,
+                   " AND ng.cond3=", kminus1, 
+                    sep="")
+
+      if (nchar(partial)>0){
+        sql <- paste(sql," AND d.word like '", partial,"%'", sep="")
+      }
+      sql <- paste(sql," ORDER BY p DESC LIMIT 3) S1",sep="")
+      sql <- paste(sql," UNION ", sep="")
   }
-  
-  e <- Sys.time()
-  print("p1")
-  print (e-s)
-  
-  s <- Sys.time()
-  
   
   if (l >= 2) {
 
-    sql <- paste("SELECT prediction, p, 3 as ngramlevel FROM THREEGRAM
-                 WHERE cond1=", kminus2, " AND cond2=", kminus1,
-                 sep="") 
-    allp <- rbind(allp,dbGetQuery(ngramdb,sql))
-    
+    sql <- paste(sql, " SELECT word, p, ngramlevel FROM (SELECT p, 3 as ngramlevel, d.word as word
+                 FROM THREEGRAM as ng",
+                 " INNER JOIN DICTIONARY as d",
+                 " ON ng.prediction = d.wordID",
+                 " WHERE ng.cond1=", kminus2, " AND ng.cond2=", kminus1,
+                 sep="")
+
+    if (nchar(partial)>0){
+      sql <- paste(sql," AND d.word like '", partial,"%'", sep="")
+    }
+    sql <- paste(sql," ORDER BY p DESC LIMIT 3) S2",sep="")
+    sql <- paste(sql," UNION ", sep="")
+
+
   }
-  
-  e <- Sys.time()
-  print("p2")
-  print (e-s)
-  
-  s <- Sys.time()
-  
-  
+
   if (l >= 1) {
-  
-    sql <- paste("SELECT prediction, p, 2 as ngramlevel FROM TWOGRAM
-                 WHERE cond1=", kminus1,
-                 sep="") 
-    allp <- rbind(allp,dbGetQuery(ngramdb,sql))
-                  
+
+    sql <- paste(sql, " SELECT word, p, ngramlevel FROM (SELECT p, 2 as ngramlevel, d.word as word
+                 FROM TWOGRAM as ng",
+                 " INNER JOIN DICTIONARY as d",
+                 " ON ng.prediction = d.wordID",
+                 " WHERE ng.cond1=", kminus1,
+                 sep="")
+
+    if (nchar(partial)>0){
+      sql <- paste(sql," AND d.word like '", partial,"%'", sep="")
+    }
+    sql <- paste(sql," ORDER BY p DESC LIMIT 3) S3",sep="")
+    sql <- paste(sql," UNION ", sep="")
+
   }
 
-  e <- Sys.time()
-  print("p3")
-  print (e-s)
-  
-  s <- Sys.time()
-  
-  onegram.dt[,ngramlevel:=1]
-  allp <- rbind(allp,onegram.dt[,.(prediction, p,ngramlevel)])
-  #setnames(allp,"V3","ngramlevel")
+  sql <- paste(sql, " SELECT word, p, ngramlevel FROM (SELECT p, 1 as ngramlevel, d.word as word
+               FROM ONEGRAM as ng",
+               " INNER JOIN DICTIONARY as d",
+               " ON ng.prediction = d.wordID",
+               sep="")
 
-  allp <- allp[order(-ngramlevel,-p)]
+  if (nchar(partial)>0){
+    sql <- paste(sql," AND d.word like '", partial,"%'", sep="")
+  }
+  sql <- paste(sql," ORDER BY p DESC LIMIT 3) S4",sep="")
+  sql <- paste(sql, " ORDER BY ngramlevel DESC, p DESC")
+
+  sql <- paste("SELECT DISTINCT word FROM (", sql,
+               ") as S LIMIT 3", sep="")
+
   
   e <- Sys.time()
   print("get allp")
   print (e-s)
   
-  s <- Sys.time()
+  unlist(dbGetQuery(ngramdb,sql))
   
-  predictions <- unique(allp$prediction)
-  predictions <- replaceIDsWithWords(predictions)
-  
-   if (nchar(partial)>0){
-     predictions <- predictions[grepl(partial, predictions)]
-   }
-  
-  
-  e <- Sys.time()
-  print("done")
-  print (e-s)
-  
-  head(predictions,3)
-
 }
 
 

@@ -6,15 +6,23 @@ pageWithSidebar(
     h4('Select a predicted word to append it to your input text.')
   ),
   mainPanel(
-    singleton(
-      tags$head(tags$script(
+    singleton(tags$head(tags$script(
+      'function moveCaretToEnd(el) {
+              if (typeof el.selectionStart == "number") {
+                  el.selectionStart = el.selectionEnd = el.value.length;
+              } else if (typeof el.createTextRange != "undefined") {
+                  el.focus();
+                  var range = el.createTextRange();
+                  range.collapse(false);
+                  range.select();
+              }
+          }'))),
+      singleton(tags$head(tags$script(
         'Shiny.addCustomMessageHandler("refocus",
            function(message) {
            var textarea = document.getElementById("ngram");
            textarea.focus();
-           var range = textarea.createTextRange();
-           range.collapse(false);
-           range.select();
+          moveCaretToEnd(textarea);
            });'))),
     
     fluidRow(

@@ -72,7 +72,7 @@ cleanRawImport <- function(data) {
   #plain text document
   data <- PlainTextDocument(data)$content
   
-  data <- paste("<start> <start> <start>", data, sep=" ")
+  data <- paste("<start> <start> <start> <start>", data, sep=" ")
   
   
   data <- stripWhitespace(data)

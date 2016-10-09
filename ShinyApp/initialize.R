@@ -11,13 +11,13 @@ library(NLP)
 library(RSQLite)
 
 
-highestngram <- 4
+highestngram <- 5
 
 
 #fourgram.dt <- readRDS("fourgram.rds")
 #threegram.dt <- readRDS("threegram.rds")
 #twogram.dt <- readRDS("twogram.rds")
-onegram.dt <- readRDS("onegram.rds")
+#onegram.dt <- readRDS("onegram.rds")
 dictionary.by.id <- readRDS("dictionary.by.id.rds")
 dictionary.by.word <- readRDS("dictionary.by.word.rds")
 profanity <- readRDS("profanity.rds")

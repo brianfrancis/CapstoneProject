@@ -108,6 +108,7 @@ dbSendQuery(conn = ngramdb,
 
 onegram <- onegram[!prediction %in% removeIDs]
 
+
 dbWriteTable(conn = ngramdb, name = "ONEGRAM", value = onegram,
              append=TRUE)
 

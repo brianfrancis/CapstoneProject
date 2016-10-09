@@ -17,7 +17,7 @@ shinyServer(
     })
     
     observe({
-      invalidateLater(1000, session)
+      invalidateLater(500, session)
       input$ngram
       
      
