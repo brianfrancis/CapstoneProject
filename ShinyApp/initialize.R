@@ -25,5 +25,5 @@ profanity <- readRDS("profanity.rds")
 sqlite    <- dbDriver("SQLite")
 ngramdb <- dbConnect(sqlite,"ngram.db")
 
-
+sent_token_annotator <- Maxent_Sent_Token_Annotator(language = "en")
 

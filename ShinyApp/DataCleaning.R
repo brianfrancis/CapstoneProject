@@ -8,12 +8,12 @@ cleanRawImport <- function(data) {
   library(stylo); 
   #library(data.table)
   
-  Encoding(data) <- "UTF-8"
+#  Encoding(data) <- "UTF-8"
   
-  data <- stri_trans_general(data, "latin-ascii")
+#  data <- stri_trans_general(data, "latin-ascii")
   
   #plain text document
-  data <- PlainTextDocument(data)$content
+#  data <- PlainTextDocument(data)$content
   data <- stripWhitespace(data)
   
   #get rid of weird characters
@@ -55,7 +55,7 @@ cleanRawImport <- function(data) {
   data <- paste("<start> <start> <start> <start>", data, sep=" ")
   
   #plain text document
-  data <- PlainTextDocument(data)$content
+#  data <- PlainTextDocument(data)$content
   data <- stripWhitespace(data)
   
   #clean up . - ' punctuation
@@ -73,7 +73,6 @@ getCorp <- function(data){
   corp <- txt.to.words(data, splitting.rule="[[:space:]]", 
                   preserve.case=TRUE)
   
- 
   corp <- replaceWords(profanity, newvalue = "<profanity>",
                        corp = corp)  
  
@@ -93,8 +92,8 @@ endOfSentence <- function(data){
   library(NLP)
   library(stringr)
   
-  
-  sent_token_annotator <- Maxent_Sent_Token_Annotator(language = "en")
+  # set in intialization instead
+#  sent_token_annotator <- Maxent_Sent_Token_Annotator(language = "en")
   
   #make sure each document ends in a single period
   if (nchar(data)==0){

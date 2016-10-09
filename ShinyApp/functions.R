@@ -10,7 +10,7 @@ cleanInput <- function (input){
   clean <- substr(clean, 1, nchar(clean) - nchar(partial))
 
   corp <- getCorp(clean)
-
+  
   corp
 }
 
@@ -50,6 +50,7 @@ predictNextWordKN <- function(input) {
   kminus1 <- x[length(x)]
   
   sql <- character(0)
+  
   
   if (l >= 4) {
     
