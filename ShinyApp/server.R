@@ -57,7 +57,7 @@ shinyServer(
        
         output$noselections <- renderUI({
           if (length(reac$predictions)>0){return()}
-          else{p("No predictions.  Try adding a space at end of your text.")}
+          else{p("No predictions.  Try adding a space at the end of your text.")}
           
         })
         
