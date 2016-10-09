@@ -1,0 +1,63 @@
+```{r setup, include=FALSE}
+opts_chunk$set(cache=TRUE)
+```
+
+A Smarter Keyboard
+========================================================
+author: Brian Francis
+date: 07-October-2016
+transition: rotate
+
+Typing text into a smartphone or tablet can be quite slow.  To improve the user experience, we propose an application that presents a "next word prediction" as the user types and allows the user to easily select a word while typing.
+
+The prototype tool has good accuracy, but is also fast, memory efficient, and intuitive to use.
+
+
+Approach
+========================================================
+
+To accomplish this we implemented an [n-gram language model](https://en.wikipedia.org/wiki/Language_model) trained over a large corpus of random text from the web.
+
+First we parsed 3,415,742 text documents from news websites, blog entries, and twitter into word phrases between one and five words.  We then estimated the probability of the "next word"" based on the last four words the user entered.
+
+For example, given the phrase "Joe and I got some yummy popcorn at the", we can estimate the most likely word to follow the phrase "yummy popcorn at the" based on the the phrases we saw in our training set.  
+
+Key Features
+========================================================
+
+* Probabilites are calculated using [Kneser-Ney smoothing](https://en.wikipedia.org/wiki/Kneser%E2%80%93Ney_smoothing)  
+ + Widely considered the most effective [smoothing](https://en.wikipedia.org/wiki/Smoothing) method for n-gram models
+* N-gram probabilites stored in a local SQLite database
+ + Greatly improves application speed and reduces memory consumption
+* Intuitive and easy to use interface
+* Web based tool
+ + Platform independent so it can run on any device connected to the web
+
+
+Performance
+===
+
+Model performance statistics below are based on a held out set of 426,967 documents.  Application performance based on 227 input predictions.
+
+
+Model Performance | Application Performance
+------------- | -------------
+Accuracy: 29.04% | Speed: 10 msec
+OOV: 0.84% | Memory: 225 MB
+
+* **Accuracy:** % of time correct word was in the top 3 predictions.
+* OOV: Out of vocabulary, i.e., words not seen in the training set.
+* Speed: Server time to return predictions for input text.
+* Memory: Server memory used by application.
+
+Intuitive User Interface
+===
+
+```{r, out.width = "800px", echo=FALSE}
+knitr::include_graphics("UsingTheTool2.gif")
+```
+
+* Enter phrase followed by a SPACE to get predictions for the next word.
+* Enter some text to refine the predictions (e.g., "w" in the demo).
+* Select a word to append it to your text then keep typing.
+

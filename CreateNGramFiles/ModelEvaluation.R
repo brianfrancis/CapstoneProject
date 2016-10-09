@@ -230,7 +230,7 @@ getAccuracyPerWord2 <- function(train.folder, test.folder, dictionary.folder){
 case <- "all_new_prune"
 
 train.folder <- paste(case,"train", sep="/")
-test.folder <- paste(case,"test", sep="/")
+test.folder <- paste(case,"validation", sep="/")
 dictionary.folder <- paste(case,"dictionary", sep="/")
 
 

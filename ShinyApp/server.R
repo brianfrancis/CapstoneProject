@@ -35,7 +35,10 @@ shinyServer(
         
         reac$predictions <- predictNextWordKN(reac$ngram)
         
-        
+        #if (is.na(reac$predictions[1])){
+          session$sendCustomMessage(type="toggleVisible",
+                                    message=list(NULL))
+        #}
         
         output$prediction1 <- renderUI({
           actionButton("inputPrediction1", label = reac$predictions[1])

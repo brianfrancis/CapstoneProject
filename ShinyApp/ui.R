@@ -25,6 +25,13 @@ pageWithSidebar(
           moveCaretToEnd(textarea);
            });'))),
     
+    singleton(tags$head(tags$script(
+      'Shiny.addCustomMessageHandler("toggleVisible",
+           function(message) {
+         #  document.getElementById(message[0]).style.visibility=message[1];
+          alert("hi");
+           });'))),
+    
     fluidRow(
            column(12, textAreaInput("ngram", "Type Some Text", 
                                     placeholder="Enter space at end to predict next word",
