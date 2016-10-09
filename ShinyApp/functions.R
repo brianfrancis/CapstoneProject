@@ -35,6 +35,10 @@ predictNextWordKN <- function(input) {
   
   partial <- getPartial(input)
   
+  #escape embedded quote in partial
+  partial <- gsub("'", "''", partial)
+  
+  
   ##need to remove the last part of the phrase if there is a space ???
   x <- cleanInput(input)
   

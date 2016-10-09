@@ -12,7 +12,6 @@ shinyServer(
     
     observeEvent(input$ngram, {
         reac$redraw <- FALSE
-     # recalculateNextWords(input$ngram)
       
     })
     
@@ -35,6 +34,9 @@ shinyServer(
       isolate({
         
         reac$predictions <- predictNextWordKN(reac$ngram)
+        
+        
+        
         output$prediction1 <- renderUI({
           actionButton("inputPrediction1", label = reac$predictions[1])
         })
@@ -54,19 +56,7 @@ shinyServer(
       })
     })
     
-    # #render action buttons when prediction changes
-    # output$prediction1 <- renderUI({
-    #   actionButton("inputPrediction1", label = reac$predictions[1])
-    # })
-    # 
-    # output$prediction2 <- renderUI({
-    #   actionButton("inputPrediction2", label = reac$predictions[2])
-    # })
-    # 
-    # output$prediction3 <- renderUI({
-    #   actionButton("inputPrediction3", label = reac$predictions[3])
-    # })
-    # 
+     
     predictionSelected <- function(value) {
       #strip off any partially entered text for the next word
       partial <- getPartial(isolate(reac$ngram))
@@ -81,13 +71,8 @@ shinyServer(
       
       updateTextAreaInput(session, "ngram", value=x)
       
-    #  recalculateNextWords(x)
     }
     
-    
-    
-    #set the initial button values for the predictions
-  #  updatePredictionOptions()
     
     observeEvent(input$inputPrediction1, {
       predictionSelected(reac$predictions[1])
