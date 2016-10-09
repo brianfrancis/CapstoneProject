@@ -118,10 +118,11 @@ replaceWords <- function(replaceWords, newvalue, corp){
   v[tolower(v) %in% replaceWords] <- newvalue
   
   #turn the vector back into a list
-  newCorp <- v
-  names(newCorp) <- NULL      
+  #newCorp <- v
+  #names(newCorp) <- NULL      
   
-  newCorp
+  #newCorp
+  v
 }
 
 
@@ -130,7 +131,7 @@ replaceWordsWithIDs <- function(v, dictionary=dictionary.by.word){
   
   dt <- data.table(word=v)
   
-  dictionary[dt,on=c(word="word")]$wordID
+  dictionary[word %in% v][dt,on=c(word="word")]$wordID
   
 }
 
@@ -147,18 +148,17 @@ replaceIDsWithWords <- function(v, dictionary=dictionary.by.id){
 replaceOOVWords <- function(corp, d=dictionary.by.word) {
   #vector
   v <- corp
-
+  
   dt <- data.table(v)
   setnames(dt,"v","word")
   
-  x <- d[dt, on=c(word="word")]
-
+  x <- d[word %in% v][dt, on=c(word="word")]
+  
   x[is.na(x$wordID), word:="<unk>"]
   
-  newCorp <- x$word
-  names(newCorp) <- NULL
+  #newCorp <- x$word
+  #names(newCorp) <- NULL
 
-
-  newCorp
-  #x$word
+  #newCorp
+  x$word
 }

@@ -5,13 +5,12 @@ cleanInput <- function (input){
   
   #take off anything not followed by a space (part of the prediction not the lookup)
   clean <- cleanRawImport(input)
-  
-  
+
   partial <- getPartial(clean)
   clean <- substr(clean, 1, nchar(clean) - nchar(partial))
 
   corp <- getCorp(clean)
-  
+
   corp
 }
 
@@ -36,16 +35,8 @@ predictNextWordKN <- function(input) {
   
   partial <- getPartial(input)
   
-  #s <- Sys.time()
   ##need to remove the last part of the phrase if there is a space ???
   x <- cleanInput(input)
-  
-  e <- Sys.time()
-  print("clean")
-  print (e-s)
-  
-  s <- Sys.time()
-  
   
   l <- length(x)
   ##just keep the last maxngram - 1 words
@@ -57,12 +48,6 @@ predictNextWordKN <- function(input) {
   if (length(x) >=3) {kminus3 <- x[(length(x)-2)]}
   if (length(x) >=2) {kminus2 <- x[(length(x)-1)]}
   kminus1 <- x[length(x)]
-  
-  e <- Sys.time()
-  print("initial")
-  print (e-s)
-  
-  s <- Sys.time()
   
   sql <- character(0)
   
@@ -151,9 +136,7 @@ predictNextWordKN <- function(input) {
   sql <- paste("SELECT DISTINCT word FROM (", sql,
                ") as S LIMIT 3", sep="")
 
-  
-  e <- Sys.time()
-  print("get allp")
+  s <- Sys.time()
   print (e-s)
   
   unlist(dbGetQuery(ngramdb,sql))
