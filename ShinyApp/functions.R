@@ -136,7 +136,7 @@ predictNextWordKN <- function(input) {
   sql <- paste("SELECT DISTINCT word FROM (", sql,
                ") as S LIMIT 3", sep="")
 
-  s <- Sys.time()
+  e <- Sys.time()
   print (e-s)
   
   unlist(dbGetQuery(ngramdb,sql))

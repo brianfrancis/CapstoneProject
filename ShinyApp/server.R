@@ -17,7 +17,7 @@ shinyServer(
     })
     
     observe({
-      invalidateLater(500, session)
+      invalidateLater(100, session)
       input$ngram
       
      
@@ -33,7 +33,7 @@ shinyServer(
     observe({
       reac$ngram
       isolate({
-        cat(reac$redraw, reac$ngram, "\n")
+        
         reac$predictions <- predictNextWordKN(reac$ngram)
         output$prediction1 <- renderUI({
           actionButton("inputPrediction1", label = reac$predictions[1])
