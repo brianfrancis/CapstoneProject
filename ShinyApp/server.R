@@ -35,26 +35,32 @@ shinyServer(
         
         reac$predictions <- predictNextWordKN(reac$ngram)
         
-        #if (is.na(reac$predictions[1])){
-          session$sendCustomMessage(type="toggleVisible",
-                                    message=list(NULL))
-        #}
-        
-        output$prediction1 <- renderUI({
-          actionButton("inputPrediction1", label = reac$predictions[1])
-        })
-        
-        output$prediction2 <- renderUI({
-          actionButton("inputPrediction2", label = reac$predictions[2])
-        })
-        
-        output$prediction3 <- renderUI({
-          actionButton("inputPrediction3", label = reac$predictions[3])
-        })
-        
         if (nchar(reac$ngram)>0) {
           session$sendCustomMessage(type="refocus",message=list(NULL))
         }
+        
+        output$prediction1 <- renderUI({
+          if (is.na(reac$predictions[1])){return()}
+          else{actionButton("inputPrediction1", label = reac$predictions[1])}
+        })
+        
+        output$prediction2 <- renderUI({
+          if (is.na(reac$predictions[2])){return()}
+          else{actionButton("inputPrediction2", label = reac$predictions[2])}
+        })
+        
+        output$prediction3 <- renderUI({
+          if (is.na(reac$predictions[3])){return()}
+          else{actionButton("inputPrediction3", label = reac$predictions[3])}
+        })
+        
+       
+        output$noselections <- renderUI({
+          if (length(reac$predictions)>0){return()}
+          else{p("No predictions.  Try adding a space at end of your text.")}
+          
+        })
+        
         
       })
     })
