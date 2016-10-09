@@ -1,89 +1,78 @@
-# remove urls?? (not working properly)
-# dont' remove punctuation
-#? Replace numbers with a character ??? N
-#? unknown words - first instance <UNK>
+#? number replacement not capturing all punctuation
 
-#clean up the raw text
 cleanRawImport <- function(data) {
+  library(tm)
+  library(stringi)
+  #library(RWeka)
+  #library(slam)
+  library(stylo); 
+  #library(data.table)
   
   Encoding(data) <- "UTF-8"
   
   data <- stri_trans_general(data, "latin-ascii")
   
+  #plain text document
+  data <- PlainTextDocument(data)$content
+  data <- stripWhitespace(data)
+  
   #get rid of weird characters
   data <- gsub("[^[:graph:]]", " ", data)
   
-  data <- tolower(data)
-  
   #remove web sites
-  data <- gsub("(f|ht)tp(s?)://(.*)[.][a-z]+", "", data)
-  
-  data <- gsub("(?<=^|\\s)#\\S+","", data, perl=TRUE)
+  data <- gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", data)
   
   #remove emails
   data <- gsub("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+", "", data, perl=TRUE)
   
-  #remove numbers
-  data <- removeNumbers(data)
+  #remove twitter @ thingies
+  data <- gsub("(?<=^|\\s)@\\S+","", data, perl=TRUE)
   
-  ##replace a / or . with a space
-  data <- gsub("/", " " ,data)
   
-  # fix contractions
-  data <- gsub("can't|can not", "cannot", data)
-  data <- gsub("shan't", "should not", data)
-  data <- gsub("won't", "will not", data)
-  #he or she
-  data <- gsub("he's", "he is", data)
-  data <- gsub("it's", "it is", data)
-  data <- gsub("let's", "let us", data)
-  data <- gsub("who's", "who is", data)
-  data <- gsub("what's", "what is", data)
-  data <- gsub("that's", "that is", data)
-  #here or there or where
-  data <- gsub("here's", "here is", data)
-  data <- gsub("when's", "when is", data)
-  data <- gsub("who's", "who is", data)
-  data <- gsub("how's", "how is", data)
-  data <- gsub("([a-z])(n't)", "\\1 not", data)
-  data <- gsub("([a-z])('d)", "\\1 would", data)
-  data <- gsub("([a-z])('re)", "\\1 are", data)
-  data <- gsub("([a-z])('m)", "\\1 am", data)
-  data <- gsub("([a-z])('ve)", "\\1 have", data)
-  data <- gsub("([a-z])('ll)", "\\1 will", data)
+  data <- tail(as.vector(endOfSentence(data)),1)
   
-  # remove apostrophe s
-  data <- gsub("([a-z])('s)", "\\1", data)
+  ##replace a / with a space
+  data <- gsub("/+", " " ,data)
   
-  #return an entry per sentence
-  data <- endOfSentence(data)
+  ##remove punctuation excpet dashes or apostrophes or periods
+  data <- gsub("[^[:alnum:][:space:][\\.'-]", "", data)
   
-  ##remove punctuation excpet dashes or apostrophes
-  data <- gsub("[^[:alnum:][:space:]-]", "", data)
+  #make first character in sentence lower case
+  data <- gsub("^([A-Z])", "\\L\\1", data, perl=TRUE)
   
-  ##remove a leading or trailing - 
-  # remove repeated dashes
-  data <- gsub("-+", "-", data)
-  data <- gsub(" -|- ", " ", data)
+  #if first word is I or I'll, or I'd, etc. make it upper case
+  data <- gsub("^(i[ '])", "\\U\\1", data, perl=TRUE)
   
-  #replace any remaining dash with a space
-  data <- gsub("-", " ", data)
+  #replace numbers with <NUM>
+  data <- gsub("[a-zA-Z0-9\\.\\'-]*[0-9][a-zA-Z0-9\\.\\'-]*","<NUM>",data)
   
-  #plain text document
-  data <- PlainTextDocument(data)$content
+  #clean up . - ' punctuation
+  data <- gsub("\\.+", ".",data)
+  data <- gsub("^[-\\.']+| [-\\.']+|[-']+ | [-\\.']+ ", " ", data)
+  
+  data <- gsub("[-\\.']$", "", data)
   
   data <- paste("<start> <start> <start> <start>", data, sep=" ")
   
-  
+  #plain text document
+  data <- PlainTextDocument(data)$content
   data <- stripWhitespace(data)
   
+  #clean up . - ' punctuation
+  data <- gsub("\\.+", ".",data)
+  data <- gsub("^[-\\.']+| [-\\.']+|[-']+ | [-\\.']+ |[-\\.']$", " ", data)
+  
   data
+  
 }
+
 
 ##get a coprus from the data
 getCorp <- function(data){
   
-  corp <- txt.to.words(data, splitting.rule="[[:space:]]")
+  corp <- txt.to.words(data, splitting.rule="[[:space:]]", 
+                  preserve.case=TRUE)
+  
  
   corp <- replaceWords(profanity, newvalue = "<profanity>",
                        corp = corp)  
@@ -100,12 +89,25 @@ getCorp <- function(data){
 
 #parse sentences
 endOfSentence <- function(data){
+  library(openNLP)
+  library(NLP)
+  library(stringr)
   
   
   sent_token_annotator <- Maxent_Sent_Token_Annotator(language = "en")
-  data <- as.String(paste(data,".\r\n",sep=""))
-  a1 <- annotate(data, sent_token_annotator)
-  data[a1]
+  
+  #make sure each document ends in a single period
+  if (nchar(data)==0){
+    x <- data
+  } else{
+    data <- paste(data,".",sep="")
+    data <- gsub("[\\.\\?!]+$",".",data)
+    
+    data <- as.String(paste(data,"",sep=""))
+    a1 <- annotate(data, sent_token_annotator)
+    x <- as.vector(data[a1])
+  }
+  x
 }
 
 #replace words with given value (e.g., replace profanity)
@@ -113,7 +115,7 @@ replaceWords <- function(replaceWords, newvalue, corp){
   
   v <- corp
   
-  v[v %in% replaceWords] <- newvalue
+  v[tolower(v) %in% replaceWords] <- newvalue
   
   #turn the vector back into a list
   newCorp <- v
@@ -151,11 +153,12 @@ replaceOOVWords <- function(corp, d=dictionary.by.word) {
   
   x <- d[dt, on=c(word="word")]
 
-  x[is.na(x$wordID)]$word <- "<unk>"
+  x[is.na(x$wordID), word:="<unk>"]
   
   newCorp <- x$word
   names(newCorp) <- NULL
-  
-  
+
+
   newCorp
+  #x$word
 }

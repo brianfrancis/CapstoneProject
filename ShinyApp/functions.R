@@ -4,7 +4,7 @@ source("DataCleaning.R")
 cleanInput <- function (input){
   
   #take off anything not followed by a space (part of the prediction not the lookup)
-  clean <- tail(cleanRawImport(input),1)
+  clean <- cleanRawImport(input)
   
   
   partial <- getPartial(clean)

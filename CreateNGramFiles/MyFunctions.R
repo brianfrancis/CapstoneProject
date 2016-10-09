@@ -1,7 +1,4 @@
-# remove urls?? (not working properly)
-# dont' remove punctuation
-#? Replace numbers with a character ??? N
-#? unknown words - first instance <UNK>
+#? number replacement not capturing all punctuation
 
 cleanRawImport <- function(data) {
   library(tm)
@@ -22,8 +19,6 @@ cleanRawImport <- function(data) {
   #get rid of weird characters
   data <- gsub("[^[:graph:]]", " ", data)
   
-  #data <- tolower(data)
-  
   #remove web sites
   data <- gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", data)
   
@@ -34,52 +29,6 @@ cleanRawImport <- function(data) {
   data <- gsub("(?<=^|\\s)@\\S+","", data, perl=TRUE)
   
   
-  #remove numbers  ?? replace with <N>
-  #data <- removeNumbers(data)
-  
-  ##change new york to newyork
-  #data <- gsub("new york", "newyork", data)
-  
-  #change san diego san francisco et.c to sandiego sanfransico etc.
-  #data <- gsub("san ", "san", data)
-  
-  #remove a single letter followed by a period (probably an initial)
-  #gsub("( [A-Za-z])\\. ", " ", data)
-  
-  
-  # fix contractions
-  # data <- gsub("can't|can not", "cannot", data)
-  # data <- gsub("shan't", "should not", data)
-  # data <- gsub("won't", "will not", data)
-  # #he or she
-  # data <- gsub("he's", "he is", data)
-  # data <- gsub("it's", "it is", data)
-  # data <- gsub("let's", "let us", data)
-  # data <- gsub("who's", "who is", data)
-  # data <- gsub("what's", "what is", data)
-  # data <- gsub("that's", "that is", data)
-  # #here or there or where
-  # data <- gsub("here's", "here is", data)
-  # data <- gsub("when's", "when is", data)
-  # data <- gsub("who's", "who is", data)
-  # data <- gsub("how's", "how is", data)
-  # data <- gsub("([a-z])(n't)", "\\1 not", data)
-  # data <- gsub("([a-z])('d)", "\\1 would", data)
-  # data <- gsub("([a-z])('re)", "\\1 are", data)
-  # data <- gsub("([a-z])('m)", "\\1 am", data)
-  # data <- gsub("([a-z])('ve)", "\\1 have", data)
-  # data <- gsub("([a-z])('ll)", "\\1 will", data)
-  # 
-  # # remove apostrophe s
-  # data <- gsub("([a-z])('s)", "\\1", data)
-  # 
-  #data <- gsub("usa", "united states")  - replace in corp ???
-  # data <- gsub("u.s.a.", "united states", data)
-  # data <- gsub("u.s.", "united states", data)
-  # 
-
-  #return an entry per sentence
-  #data <- unlist(lapply(data, endOfSentence))
   data <- endOfSentence(data)
 
   ##replace a / with a space
